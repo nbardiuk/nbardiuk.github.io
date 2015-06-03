@@ -1,0 +1,15 @@
+name: Nazarii Bardiuk
+meta_description: "Your New Jekyll Site, Blogging about stuffs"
+
+markdown: redcarpet
+highlighter: pygments
+logo: true
+cover: '/assets/images/header.jpeg'
+paginate: 5
+baseurl: /
+domain_name: 'http://nazarii.bardiuk.com'
+google_analytics: 'UA-54529964-1'
+
+# Details for the RSS feed generator
+url:            'http://nazarii.bardiuk.com'
+author:         'Nazarii Bardiuk'
