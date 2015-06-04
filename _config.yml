@@ -11,5 +11,6 @@ domain_name: 'http://nazarii.bardiuk.com'
 google_analytics: 'UA-54529964-1'
 
 # Details for the RSS feed generator
-url:            'http://nazarii.bardiuk.com'
-author:         'Nazarii Bardiuk'
+url:      'http://nazarii.bardiuk.com'
+author:   'Nazarii Bardiuk'
+rss_path: ../ #github pages does not support plugin so generate rss.xml to the sources
