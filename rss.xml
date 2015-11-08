@@ -8,7 +8,15 @@
     <title>Nazarii Bardiuk</title>
     <link>http://nazarii.bardiuk.com</link>
     <description>RSS feed for Nazarii Bardiuk</description>
-    <pubDate>Sat, 29 Nov 2014 06:54:00 +0000</pubDate>
+    <pubDate>Sun, 08 Nov 2015 22:00:00 +0000</pubDate>
+    <item>
+      <title>Monads with Java 8</title>
+      <link>http://nazarii.bardiuk.com/java-monad</link>
+      <description>&lt;p&gt;It is a paraphrase to Java of &lt;a href=&quot;http://blog.sigfpe.com/2007/04/trivial-monad.html&quot;&gt;&amp;quot;The Trivial Monad&amp;quot;&lt;/a&gt; by Dan Piponi with applications for Java developers.&lt;/p&gt;
+</description>
+      <pubDate>Sun, 08 Nov 2015 22:00:00 +0000</pubDate>
+      <dc:date>2015-11-08T22:00:00+00:00</dc:date>
+    </item>
     <item>
       <title>Game Of Live in Clojure with Quil</title>
       <link>http://nazarii.bardiuk.com/game-of-live-clojure</link>
@@ -17,6 +25,6 @@
       <pubDate>Sat, 29 Nov 2014 06:54:00 +0000</pubDate>
       <dc:date>2014-11-29T06:54:00+00:00</dc:date>
     </item>
-    <dc:date>2014-11-29T06:54:00+00:00</dc:date>
+    <dc:date>2015-11-08T22:00:00+00:00</dc:date>
   </channel>
 </rss>
