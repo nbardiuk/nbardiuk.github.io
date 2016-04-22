@@ -14,7 +14,8 @@ Monad is like a ...
 There is no good analogy to explain what is monad to new person ([monad tutorial fallacy][monad-fallacy]). The best way to get it right is just to do some coding. So lets explore simple design pattern - one-way wrapper. Such wrapper can wrap value but can't unwrap it back.
 
 In Java it can look like simple immutable object
-{% highlight java %}
+
+```java
 @ToString @EqualsAndHashCode
 class Wrap<T> {
   private final T value;
@@ -23,75 +24,83 @@ class Wrap<T> {
     return new Wrap<>(value);
   }
 }
-{% endhighlight %}
+```
 This class is just going to wrap a value using factory method `of`. There are no getters and setters, but present `toString`, `equals` and `hashCode` for convenience (see [lombok]).
 
 To do something with value we need a method that will apply mapping function and then return new wrapped value. It is important to keep value wrapped so it never escapes.
-{% highlight java %}
+
+```java
 class Wrap<T> {
   // ...
   public <R> Wrap<R> map(Function<T, R> mapper) {
     return Wrap.of(mapper.apply(value));
   }
 }
-{% endhighlight %}
-{% highlight java %}
+```
+
+```java
 Wrap<Integer> a = Wrap.of(1);           // Wrap(value=1)
 Wrap<Integer> b = a.map(i -> i + 9);    // Wrap(value=10)
 Wrap<Integer> c = b.map(i -> i * 11);   // Wrap(value=110)
 a.map(i -> i * 10).map(i -> i + 11);    // Wrap(value=21)
-{% endhighlight %}
+```
 OK, now we can do something with this, but usually things are more interesting. After starting using wrapped values here and there we eventually create method like this
-{% highlight java %}
+
+```java
 Wrap<Integer> inc(Integer x) {
   return Wrap.of(x + 1);
 }
-{% endhighlight %}
+```
 `inc` gets a number and then returns a wrapped result. It is very useful business logic and we want to apply it even to wrapped values.
-{% highlight java %}
+
+```java
 Wrap<Integer> a = Wrap.of(1);     // Wrap(value=1)
 a.map(this::inc);                 // Wrap(value=Wrap(value=2))
 a.map(this::inc).map(this::inc);  // !!! COMPILATION ERROR
-{% endhighlight %}
+```
 First problem we face is that it wraps already wrapped result. And then we cannot continue applying it - `inc` accepts only `Integer` but not `Wrap<Integer>` instance.
 
 There should be some way to `inc` value and not wrap it again.
-{% highlight java %}
+
+```java
 class Wrap<T> {
   // ...
   public <R> Wrap<R> flatMap(Function<T, Wrap<R>> mapper) {
     return mapper.apply(value);
   }
 }
-{% endhighlight %}
+```
 `flatMap` is still safe - it doesn't give user a plain value but provides it to the mapper.
 
 Now we can apply `inc` several times in chains
-{% highlight java %}
+
+```java
 Wrap<Integer> a = Wrap.of(1);              // Wrap(value=1)
 a.flatMap(this::inc);                      // Wrap(value=2)
 a.flatMap(this::inc).flatMap(this::inc);   // Wrap(value=3)
-{% endhighlight %}
+```
 Actually `flatMap` is more generic then `map` and we can implement `map` using it
-{% highlight java %}
+
+```java
 class Wrap<T> {
   // ...
   <R> Wrap<R> map(Function<T, R> mapper) {
     return flatMap(mapper.andThen(Wrap::of));
   }
 }
-{% endhighlight %}
+```
 `andThen` composes function with another, passing result of first as argument to the second [Function#andThen]
 
 Now we have all tools to work with our wrapper type. `of` wraps a value and `flatMap` gives a way to modify it without need to unwrap anything. And we can chain multiple transformations without worry how to unwrap layers of results.
 
 Basically, this is a monad - type that provides APIs to enclose some value and modify it without exiting enclosed context
-{% highlight java %}
+
+```java
 interface Monad<T> {
   Monad<T> of(T value);
   <R> Monad<R> flatMap(Function<T, Monad<R>> mapper);
 }
-{% endhighlight %}
+```
 
 ### Real world problems
 
@@ -100,64 +109,74 @@ In Java there are several monadic types and even more with growing number of lib
 #### Operations on Optionals
 
 Assume we need to add two optional values. And we don't know how to unwrap them, I mean don't know what to do with empty values. All what we want is only add values together and leave that decision for later
-{% highlight java %}
+
+```java
 Optional<Integer> a = ...
 Optional<Integer> b = ...
 return add(a, b);
-{% endhighlight %}
+```
 Such function `add` should return new Optional with the result of adding values
-{% highlight java %}
+
+```java
 Optional<Integer> add(Optional<Integer> oa, Optional<Integer> ob) {
   return oa.flatMap(a -> ob.map(b -> a + b));
 }
-{% endhighlight %}
+```
 Lambda inside `flatMap` has access to value of `oa` and uses it to increment value of `ob` similarly to previous `inc` function.
-{% highlight java %}
+
+```java
 Optional<Integer> a = Optional.of(13);
 Optional<Integer> b = Optional.of(42);
 add(a, b);                 // Optional[55]
 add(a, Optional.empty());  // Optional.empty
 add(Optional.empty(), b);  // Optional.empty
-{% endhighlight %}
+```
 
 What if we need to perform other operations? Lets create another method that additionally accepts an operation
-{% highlight java %}
+
+```java
 <A, B, R> Optional<R> compute(BiFunction<A, B, R> operation, Optional<A> oa, Optional<B> ob) {
   return oa.flatMap(a -> ob.map(b -> operation.apply(a, b)));
 }
-{% endhighlight %}
+```
 It is little bit to verbose but basically `compute` applies `operation` on values from optionals and returns optional result
-{% highlight java %}
+
+```java
 Optional<Integer> a = Optional.of(13);
 Optional<Integer> b = Optional.of(42);
 BiFunction<Integer, Integer, Integer> plus = (x, y) -> x + y;
 BiFunction<Integer, Integer, Integer> times = (x, y) -> x * y;
 compute(plus, a, b);    // Optional[55]
 compute(times, a, b);   // Optional[546]
-{% endhighlight %}
+```
+
 #### Streams of Optionals
 So far so good. But with Java 8 we usually deal with a lot of streams. It is a common case when during pipeline we end up with stream of optional values. Now as we know how to perform operations on optionals lets find a product of all optional values in stream
-{% highlight java %}
+
+```java
 Optional<Integer> one = Optional.of(1);
 Stream<Optional<Integer>> stream = Stream.of(1, 2, 3, 4).map(Optional::of);
 stream.reduce(one, (acc, elem) -> compute(times, acc, elem));  // Optional[24]
 stream = Stream.of(Optional.of(10), Optional.empty());
 stream.reduce(one, (acc, elem) -> compute(times, acc, elem));  // Optional.empty
-{% endhighlight %}
+```
 We provide initial value `one` and then compute product of accumulator and each value in stream.
 
 APIs are not always so friendly. Lets look at the reduce but without initial value
-{% highlight java %}
+
+```java
 stream.reduce((acc, elem) -> compute(times, acc, elem));  // Optional[Optional[24]]
-{% endhighlight %}
+```
 It wraps result into optional, because stream can be empty and we didn't provide any initial value.
+
 #### Flattening
 How can we deal with optional of optional without unwrapping it?
 We can flatten it with `flatMap`
-{% highlight java %}
+
+```java
 Optional<Optional<Integer>> ooa = Optional.of(Optional.of(24));
 Optional<Integer> oa = ooa.flatMap(o -> o); // Optional[24]
-{% endhighlight %}
+```
 Function `o -> o` is called identity and actually it is so useful that you can find it in standard library [Function#identity][identity]
 
 ### Wrap-up

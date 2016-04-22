@@ -2,7 +2,7 @@ name: Nazarii Bardiuk
 meta_description: "Blogging about stuffs"
 
 markdown: redcarpet
-highlighter: pygments
+highlighter: rouge
 logo: true
 cover: '/assets/images/header.jpeg'
 paginate: 5
@@ -14,3 +14,6 @@ google_analytics: 'UA-54529964-1'
 url:      'http://nazarii.bardiuk.com'
 author:   'Nazarii Bardiuk'
 rss_path: ../ #github pages does not support plugin so generate rss.xml to the sources
+
+gems:
+  - jekyll-paginate
