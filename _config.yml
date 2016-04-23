@@ -1,7 +1,7 @@
 name: Nazarii Bardiuk
 meta_description: "Blogging about stuffs"
 
-markdown: redcarpet
+markdown: kramdown
 highlighter: rouge
 logo: true
 cover: '/assets/images/header.jpeg'

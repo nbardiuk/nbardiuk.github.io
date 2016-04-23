@@ -8,7 +8,7 @@ permalink: /game-of-live-clojure/
 This is my attempt to implement [Conway's Game of Life][conwaylife] in Clojure using Quil library.
 
 #### Game of Life
-[<img src="/assets/images/112P51.gif" width=205 height=205 align="right" alt="112P51"/>][112P51]
+[![112P51](/assets/images/112P51.gif){: width=205 height=205 align="right"}](http://www.conwaylife.com/wiki/112P51)
 There is an infinite grid of cells that can be alive or dead.
 For each iteration state of the grid is recalculated using several rules:
 
@@ -100,7 +100,6 @@ Fill free to play with it.
 `Have a nice hack ;)`
 
 [conwaylife]: http://www.conwaylife.com/wiki/Conway%27s_Game_of_Life
-[112P51]: http://www.conwaylife.com/wiki/112P51
 [quil]: http://quil.info
 [fun-mode]: https://github.com/quil/quil/wiki/Functional-mode-%28fun-mode%29
 [light-table]: https://github.com/quil/quil/wiki/Dynamic-Workflow-%28for-LightTable%29
