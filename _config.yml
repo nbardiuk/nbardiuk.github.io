@@ -6,8 +6,6 @@ kramdown:
   input: GFM
 
 highlighter: rouge
-logo: true
-cover: '/assets/images/header.jpeg'
 
 paginate:      5
 paginate_path: /page:num/
