@@ -1,70 +1,45 @@
 ---
 layout: default
-archive: false
-post_class: post-template
 ---
-
-<header class="main-header post-head {% if page.cover %}" style="background-image: url({{ page.cover }}) {%else%}no-cover{% endif %}">
-    <nav class="main-nav {% if page.cover %} overlay {% endif %} clearfix">
-        <a class="back-button icon-arrow-left" href="{{ site.baseurl }}">Home</a>
-        <a class="subscribe-button icon-feed" href="{{ site.baseurl }}rss.xml">Subscribe</a>
-    </nav>
+<header>
+  <h1 class="header-small">
+    <a href="{{site.url}}{{site.baseurl}}">{{ site.name }}</a>
+  </h1>
 </header>
+<div class="post">
+  <h1 class="post-title">{{ page.title }}</h1>
+  <span class="post-date">
+    <time>{{ page.date | date_to_string }}</time>
+  </span>
+  <div class="post-tag">
+    <ul>
+      {% for tag in page.tags %}
+      <li>
+        <a href="{{ site.url }}/tags#{{ tag }}" class="tag">
+          <span class="term">{{ tag }}</span>
+        </a>
+      </li>
+      {% unless forloop.last %}{% endunless %}
+      {% endfor %}
+    </ul>
+  </div>
 
-<main class="content" role="main">
+  {{ content }}
 
-    <article class="post">
 
-        <header class="post-header">
-            <h1 class="post-title">{{ page.title }}</h1>
-            <section class="post-meta">                
-                <time class="post-date" datetime="{{ page.date | date:"%Y-%m-%d" }}">{{ page.date | date_to_string }}</time>
-                {% if page.categories.size > 0 %} 
-                    {{ page.categories | array_to_sentence_string | prepend: 'on ' }} 
-                {% endif %}
-            </section>
-        </header>
+  <!-- Share -->
+  {% if page.share != false %}
+  <div class="post-share">
+    <hr>
+    {% include share.html %}
+    <hr>
+  </div>
+  {% endif %}
 
-        <section class="post-content">
-            {{content}}
-        </section>
+  <!-- Disqus -->
+  {% if page.comments != false and site.disqus.id %}
+  <section id="disqus_thread"></section>
+  {% include disqus.html %}
+  {% endif %}
 
-        {% if page.archive %}
-        <section class="archive">
-            <h5>Archive</h5>
-            <ul>
-                {% for post in site.posts %}
-                    <li><span>{{ post.date | date_to_string }}</span>  <a href="{{ post.url }}">{{ post.title }}</a></li>
-                {% endfor %}    
-            </ul>
-        </section>
-        {% endif %}
-
-        <footer class="post-footer">
-            <!-- If we want to display author's name and bio -->
-            {% if site.author %}
-                <figure class="author-image">
-                    <a class="img" href="{{ site.baseurl }}" style="background-image: url(/assets/images/profile.jpeg)">
-                    <span class="hidden">{{site.author}}'s Picture</span></a>
-                </figure>
-                <section class="author">
-                    <!-- Author Name -->
-                    <h4> {{ site.author }} </h4>
-                    <!-- Author Bio -->
-<!--                    <p> 
-                        Here goes the author description. You might want to place some links too in here
-                    </p>-->
-                </section>                
-            {% endif %}
-
-            <!-- Share links section -->
-            {% include share.html %}
-            
-            <!-- Disqus comments -->
-                {% include disqus.html %}
-            
-        </footer>
-
-    </article>
-
-</main>
+</div>

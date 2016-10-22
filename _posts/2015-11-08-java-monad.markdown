@@ -1,8 +1,7 @@
 ---
-layout: post
 title:  "Monads with Java 8"
 date:   2015-11-08 22:00:00
-categories: Java Monad Haskell
+tags: [Java, Monad, Haskell, FP]
 permalink: /java-monad/
 ---
 It is a paraphrase to Java of ["The Trivial Monad"][trivial-monad] by Dan Piponi with applications for Java developers.

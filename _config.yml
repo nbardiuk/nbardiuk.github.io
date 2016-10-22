@@ -2,20 +2,63 @@ name: Nazarii Bardiuk
 meta_description: "Blogging about stuffs"
 
 markdown: kramdown
+kramdown:
+  input: GFM
+
 highlighter: rouge
 logo: true
 cover: '/assets/images/header.jpeg'
-paginate: 5
-baseurl: /
-domain_name: 'http://nazarii.bardiuk.com'
-google_analytics: 'UA-54529964-1'
 
-# Details for the RSS feed generator
-url:    'http://nazarii.bardiuk.com'
-author: nbardiuk
+paginate:      5
+paginate_path: /page:num/
+
+baseurl:     ""
+domain_name: 'http://nazarii.bardiuk.com'
+url:         'http://nazarii.bardiuk.com'
+
+google-analytics:
+  id: 'UA-54529964-1'
+
+disqus:
+  id: 'nazariibardiuk'
+
+author:
+  name:     Nazarii Bardiuk
+  facebook: nbardiuk
+  twitter:  nbardiuk
+  github:   nbardiuk
+  linkedin: nazariibardiuk
+  email:    nazarii.bardiuk@gmail.com
+
+nav:
+  - name:  "Archive"
+    url:   "/archive"
+  - name:  "Tags"
+    url:   "/tags"
+
+sass:
+  sass_dir: _sass
+  style:    :compressed
+
+defaults:
+  -
+    scope:
+      path:   ""
+      type:   "pages"
+    values:
+      layout: "page"
+
+  -
+    scope:
+      path:   ""
+      type:   "posts"
+    values:
+      layout: "post"
+
 feed:
   path: rss.xml
 
 gems:
   - jekyll-paginate
   - jekyll-feed
+  - jekyll-seo-tag

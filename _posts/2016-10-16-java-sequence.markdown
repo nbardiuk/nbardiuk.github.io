@@ -1,9 +1,8 @@
 ---
-layout: post
 title:  "Java Sequence"
 date: 2016-10-16 22:00:00
 permalink: /java-sequence/
-categories: Java FP
+tags: [Java, FP]
 ---
 
 In this article I would like to explore a `sequence` function and its implementation in Java.
@@ -35,7 +34,7 @@ So a sequence of optional values is going to produce an optional list, and it wi
 Consider a function `parse` that extracts a number from a string, if it represents a valid integer.
 
 ```java
-Optional<Integer> parse(String number);
+Optional<Integer> parse(String number)
 ```
 
 We can use sequence to group individual parsed numbers into parsed list.  
@@ -63,8 +62,8 @@ If we sequence a list of futures it should produce an asynchronous list that is 
 It also has all or nothing semantics - result will be available only after all of futures are completed.
 
 ```java
-CompletableFuture<T> async(T i); // produces later
-CompletableFuture<T> failed();   // finishes exceptionally
+CompletableFuture<T> async(T i) // produces later
+CompletableFuture<T> failed()   // finishes exceptionally
 ```
 
 ```java
@@ -104,7 +103,8 @@ sequence(asList(1, 2), emptyList(), asList(10, 20))
 Usually Cartesian product is used to generate combinations of values
 
 ```java
-sequence(asList("J", "Q", "K", "A"), asList("Clubs", "Diamonds", "Hearts", "Spades"))
+sequence(asList("J", "Q", "K", "A"), 
+         asList("Clubs", "Diamonds", "Hearts", "Spades"))
 // [[J, Clubs], [J, Diamonds], [J, Hearts], [J, Spades],
 // [Q, Clubs], [Q, Diamonds], [Q, Hearts], [Q, Spades],
 // [K, Clubs], [K, Diamonds], [K, Hearts], [K, Spades],
@@ -208,7 +208,8 @@ These functions are part of `Applicative`, an interface which satisfy all previo
 Let's do it for `CompletableFuture`
 
 ```java
-<T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
+<T> CompletableFuture<List<T>> 
+sequence(List<CompletableFuture<T>> futures) {
   return futures.stream().reduce(
     pure(emptyList()),
     lift(add()),
@@ -219,8 +220,7 @@ Let's do it for `CompletableFuture`
   return completedFuture(t);
 }
 
-<A, B, C>
-BiFunction<CompletableFuture<A>, CompletableFuture<B>, CompletableFuture<C>>
+<A, B, C> BiFunction<CompletableFuture<A>, CompletableFuture<B>, CompletableFuture<C>>
 lift(BiFunction<A, B, C> f) {
   return (fa, fb) -> fa.thenCombine(fb, f);
 }
@@ -235,7 +235,7 @@ Bodies of `sequence` implementations are identical, that is a place for generali
 So we cannot extract type safe notion of `Applicative` for `sequence` function
 
 ```java
-<T, A extends Applicative> A<List<T>> sequence(A<T> ... applicatives);
+<T, A extends Applicative> A<List<T>> sequence(A<T> ... applicatives)
 ```
 
 ## Composition
@@ -250,7 +250,7 @@ I have two options:
 Collections of list to stream usually is a little bit premature. So we need to extract reduction. The way to reuse reduction functionality in `Stream` API is to create a `Collector`.
 
 ```java
-<T> Collector<Optional<T>, ?, Optional<List<T>>> optionals();
+<T> Collector<Optional<T>, ?, Optional<List<T>>> optionals()
 
 Optional<List<Integer>> result =
   Stream.of(parse("1"), parse("2"), parse("3")).collect(optionals())
@@ -302,7 +302,7 @@ Also we can compose sequencing collectors. Consider a list of futures that will 
 
 ```java
 List<CompletableFuture<Optional<Integer>>>
-list = asList(async(parse("1")), async(parse("2")), async(parse("3")));
+list = asList(async(parse("1")), async(parse("2")), async(parse("3")))
 ```
 Using composition of collectors we can decide how much structure should be extracted from list
 
@@ -312,7 +312,7 @@ result = list.stream().collect(futures(toList()))
 // CompletableFuture[[Optional[1], Optional[2], Optional[3]]]
 
 CompletableFuture<Optional<List<Integer>>>
-result = list.stream().collect(futures(optionals(toList())));
+result = list.stream().collect(futures(optionals(toList())))
 // CompletableFuture[Optional[[1, 2, 3]]]
 ```
 
@@ -322,7 +322,7 @@ Lets go crazy with functions
 
 ```java
 List<Function<String, CompletableFuture<Optional<Integer>>>>
-list = asList(s -> async(parse(s)), s -> async(read(s)));
+list = asList(s -> async(parse(s)), s -> async(read(s)))
 
 Function<String, List<CompletableFuture<Optional<Integer>>>>
 result = list.stream().collect(functions(toList()))
