@@ -14,9 +14,6 @@ baseurl:     ""
 domain_name: 'http://nazarii.bardiuk.com'
 url:         'http://nazarii.bardiuk.com'
 
-google-analytics:
-  id: 'UA-54529964-1'
-
 author:
   name:     Nazarii Bardiuk
   facebook: nbardiuk
