@@ -2,7 +2,7 @@
 title:  "Java Sequence"
 date: 2016-10-16 22:00:00
 permalink: /java-sequence/
-tags: [Java, FP]
+tags: Java, FP
 ---
 
 In this article I would like to explore a `sequence` function and its implementation in Java.

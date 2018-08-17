@@ -1,7 +1,7 @@
 ---
 title:  "Monads with Java 8"
 date:   2015-11-08 22:00:00
-tags: [Java, Monad, Haskell, FP]
+tags: Java, Monad, Haskell, FP
 permalink: /java-monad/
 ---
 It is a paraphrase to Java of ["The Trivial Monad"][trivial-monad] by Dan Piponi with applications for Java developers.
@@ -184,6 +184,11 @@ Sometimes it is better to operate on monads and leave decision how to unwrap the
 Code is available on [Gist] - feel free to play with it.
 
 `Have a nice hack ;)`
+
+### Referrers
+
+ * [Monads for Java developers: Part 1 — The Optional monad](https://medium.com/@afcastano/monads-for-java-developers-part-1-the-optional-monad-aa6e797b8a6e)
+ * [Monads for Java developers: Part 2 — Two monads more](https://medium.com/@afcastano/monads-for-java-developers-part-2-the-result-and-log-monads-a9ecc0f231bb)
 
 [trivial-monad]: http://blog.sigfpe.com/2007/04/trivial-monad.html
 [monad-fallacy]: https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/

@@ -1,13 +1,13 @@
 ---
 title:  "Game Of Live in Clojure with Quil"
 date:   2014-11-29 06:54:00
-tags: [clojure, quil, FP]
+tags: clojure, quil, FP
 permalink: /game-of-live-clojure/
 ---
 This is my attempt to implement [Conway's Game of Life][conwaylife] in Clojure using Quil library.
 
 ### Game of Life
-[![112P51](/assets/images/112P51.gif){: width=205 height=205 align="right"}](http://www.conwaylife.com/wiki/112P51)
+<img src="/images/112P51.gif" style="float: right; margin: 10px;" />
 There is an infinite grid of cells that can be alive or dead.
 For each iteration state of the grid is recalculated using several rules:
 
