@@ -1,0 +1,27 @@
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: fpco/stack-build:lts-12.6
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
+            - stack-{{ .Branch }}
+            - stack-
+      - run:
+          name: Dependencies
+          command: stack setup
+      - run:
+          name: Build
+          command: stack build
+      - save_cache:
+          key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
+          paths:
+            - ~/.stack
+            - ./.stack-work
+      - run:
+          name: Generate
+          command: stack exec site build
