@@ -25,3 +25,6 @@ jobs:
       - run:
           name: Generate
           command: stack exec site build
+      - run:
+          name: Publish
+          command: ./publish.sh

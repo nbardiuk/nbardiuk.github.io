@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
-stack clean && stack build && rm -rf _cache && rm -rf _site && stack exec site build
-
 cd _site
 
 git init
-git config user.email 'nazarii@bardiuk.com'
+git config user.name  'CircleCI'
+git config user.email 'job@circleci.com'
 
 git add .
 git commit -m "manual deploy"
