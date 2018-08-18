@@ -12,10 +12,10 @@ jobs:
             - stack-{{ .Branch }}
             - stack-
       - run:
-          name: Dependencies
+          name: Setup Slack
           command: stack setup
       - run:
-          name: Build
+          name: Build Site
           command: stack build
       - save_cache:
           key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
@@ -23,8 +23,8 @@ jobs:
             - ~/.stack
             - ./.stack-work
       - run:
-          name: Generate
+          name: Generate Pages
           command: stack exec site build
       - run:
-          name: Publish
+          name: Publish Pages
           command: ./publish.sh
