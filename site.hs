@@ -3,12 +3,8 @@
 import           Data.Monoid (mappend)
 import           Hakyll
 
-
---------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
-
-    tags <- buildTags postsPattern (fromCapture "tags/*.html")
 
     match "CNAME" $ do
         route   idRoute
@@ -25,32 +21,17 @@ main = hakyll $ do
     match "posts/*" $ do
         route $ setExtension "html"
         compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    (postCtx tags)
+            >>= loadAndApplyTemplate "templates/post.html"    postCtx
             >>= saveSnapshot "content"
-            >>= loadAndApplyTemplate "templates/default.html" (postCtx tags)
+            >>= loadAndApplyTemplate "templates/default.html" postCtx
             >>= relativizeUrls
-
-    tagsRules tags $ \tag pattern -> do
-        route idRoute
-        compile $ do
-            posts <- recentFirst =<< loadAll pattern
-            let tagCtx =
-                  listField "posts" (postCtx tags) (return posts)
-                  `mappend` constField "title" ("Posts tagged \"" ++ tag ++ "\"")
-                  `mappend` defaultContext
-
-            makeItem ""
-                >>= loadAndApplyTemplate "templates/tag.html" tagCtx
-                >>= loadAndApplyTemplate "templates/default.html" tagCtx
-                >>= relativizeUrls
-
 
     match "index.html" $ do
         route idRoute
         compile $ do
             posts <- recentFirst =<< loadAll "posts/*"
             let indexCtx =
-                    listField "posts" (postCtx tags) (return posts)
+                    listField "posts" postCtx (return posts)
                     `mappend` constField "title" ""
                     `mappend` defaultContext
 
@@ -68,16 +49,14 @@ main = hakyll $ do
         route idRoute
         compile $ do
             let feedCtx =
-                   bodyField "description" `mappend`
-                   postCtx tags
+                   bodyField "description" 
+                   `mappend` postCtx
             posts <- recentFirst =<< loadAllSnapshots "posts/*" "content"
             renderRss feedConfig feedCtx posts
 
 
---------------------------------------------------------------------------------
-postCtx :: Tags -> Context String
-postCtx tags = tagsField "tags" tags
-      `mappend` dateField "date" "%B %e, %Y"
+postCtx :: Context String
+postCtx = dateField "date" "%B %e, %Y"
       `mappend` defaultContext
 
 brokenLinks =
@@ -93,5 +72,3 @@ feedConfig = FeedConfiguration {
     ,feedAuthorEmail = "nazarii@bardiuk.com"
     ,feedRoot        = "https://nazarii.bardiuk.com"
 }
-
-postsPattern = "posts/*" .&&. complement "posts/index.html"
