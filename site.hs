@@ -10,6 +10,10 @@ main = hakyll $ do
 
     tags <- buildTags postsPattern (fromCapture "tags/*.html")
 
+    match "CNAME" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
