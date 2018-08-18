@@ -1,0 +1,12 @@
+name: site
+version: 0.1.0.0
+
+dependencies:
+  - base == 4.*
+  - hakyll == 4.12.*
+
+executables:
+  site:
+    main: site.hs
+
+ghc-options: -threaded
