@@ -54,6 +54,11 @@ main = hakyll $ do
             posts <- recentFirst =<< loadAllSnapshots "posts/*" "content"
             renderRss feedConfig feedCtx posts
 
+    match "404.markdown" $ do
+        route   $ setExtension "html"
+        compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/default.html" defaultContext
+            >>= relativizeUrls
 
 postCtx :: Context String
 postCtx = dateField "date" "%B %e, %Y"
