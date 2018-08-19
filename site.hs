@@ -1,5 +1,6 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+import           Control.Monad (forM_)
 import           Data.Monoid (mappend)
 import           Hakyll
 
@@ -10,7 +11,7 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
-    match "images/*" $ do
+    forM_ ["favicon.ico" ,"images/*"] $ \p -> match p $ do
         route   idRoute
         compile copyFileCompiler
 
