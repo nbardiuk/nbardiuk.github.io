@@ -1,5 +1,4 @@
-version: 2.0
-
+version: 2
 jobs:
   build:
     docker:
@@ -15,7 +14,7 @@ jobs:
           name: Setup Slack
           command: stack setup
       - run:
-          name: Build Site
+          name: Build Site App
           command: stack build
       - save_cache:
           key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
@@ -23,8 +22,16 @@ jobs:
             - ~/.stack
             - ./.stack-work
       - run:
-          name: Generate Pages
+          name: Generate Static Site
           command: stack exec site build
       - run:
-          name: Publish Pages
-          command: ./publish.sh
+          name: Publish To GitHub
+          working_directory: './_site'
+          command: |
+            git init
+            git config user.name  'CircleCI'
+            git config user.email 'job@circleci.com'
+            git add .
+            git commit -m "publish $CIRCLE_SHA1"
+            git remote add origin "$CIRCLE_REPOSITORY_URL"
+            git push --force origin master
