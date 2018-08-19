@@ -4,7 +4,7 @@ date:   2014-11-29 06:54:00
 ---
 This is my attempt to implement [Conway's Game of Life][conwaylife] in Clojure using Quil library.
 
-### Game of Life
+## Game of Life
 <img src="/images/112P51.gif" style="float: right; margin: 10px;" />
 There is an infinite grid of cells that can be alive or dead.
 For each iteration state of the grid is recalculated using several rules:
@@ -16,7 +16,7 @@ Such simple rules create a lot of interesting and complex patterns.
 For example, oscillator - a pattern that evolves in itself after number of iterations.
 
 
-### Quil
+## Quil
 [Quil][quil] is a Clojure wrapper around Processing. 
 Dynamic nature of Clojure and simple Processing API for graphics gives ability to quickly prototype algorithmic graphics. 
 Checkout [Quil LightTable tutorial][light-table] and try their dynamic workflow.
@@ -25,7 +25,7 @@ Basic Quil application with [funcional mode][fun-mode] consists of 3 main functi
 setup, update and draw. Each function works with the state - a map of everything you need on the scene. 
 Instead of updating global variables for each frame, Quil gives us an API to deal with program state in a functional way.
 
-#### Setup
+## Setup
 is called once before the first frame. The main goal is to setup Quil scene and create a state map. 
 
 ```clojure
@@ -40,7 +40,7 @@ is called once before the first frame. The main goal is to setup Quil scene and 
 Here `:life` is a set of all alive cells. Usually, developers implement grid by a twodimensional matrix. 
 I've found working with the set just more comfortable for infinitely large grid.
 
-#### Update
+## Update
 is a function that transforms the state for every frame.
 
 ```clojure
@@ -75,7 +75,7 @@ Next it creates `next-life` set from `candidates` that will survive this iterati
 ```
 
 
-#### Draw
+## Draw
 function takes a state and draws a frame.
 
 ```clojure
@@ -90,7 +90,7 @@ function takes a state and draws a frame.
 ```
 It is simple like that. Just clears scene and draws a square for every alive cell.
 
-### TL;TR
+## TL;TR
 The whole project with instructions how to run it is available on [github][gol]. 
 Fill free to play with it. 
 

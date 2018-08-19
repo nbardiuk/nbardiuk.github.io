@@ -4,7 +4,7 @@ date:   2015-11-08 22:00:00
 ---
 It is a paraphrase to Java of ["The Trivial Monad"][trivial-monad] by Dan Piponi with applications for Java developers.
 
-### An intuition
+## An intuition
 
 Monad is like a ...
 
@@ -99,11 +99,11 @@ interface Monad<T> {
 }
 ```
 
-### Real world problems
+## Real world problems
 
 In Java there are several monadic types and even more with growing number of libraries. I will use [Optional] next, but these examples can be similarly applied to others.
 
-#### Operations on Optionals
+### Operations on Optionals
 
 Assume we need to add two optional values. And we don't know how to unwrap them, I mean don't know what to do with empty values. All what we want is only add values together and leave that decision for later
 
@@ -147,7 +147,7 @@ compute(plus, a, b);    // Optional[55]
 compute(times, a, b);   // Optional[546]
 ```
 
-#### Streams of Optionals
+### Streams of Optionals
 So far so good. But with Java 8 we usually deal with a lot of streams. It is a common case when during pipeline we end up with stream of optional values. Now as we know how to perform operations on optionals lets find a product of all optional values in stream
 
 ```java
@@ -166,7 +166,7 @@ stream.reduce((acc, elem) -> compute(times, acc, elem));  // Optional[Optional[2
 ```
 It wraps result into optional, because stream can be empty and we didn't provide any initial value.
 
-#### Flattening
+### Flattening
 How can we deal with optional of optional without unwrapping it?
 We can flatten it with `flatMap`
 
@@ -176,14 +176,14 @@ Optional<Integer> oa = ooa.flatMap(o -> o); // Optional[24]
 ```
 Function `o -> o` is called identity and actually it is so useful that you can find it in standard library [Function#identity][identity]
 
-### Wrap-up
+## Wrap-up
 Sometimes it is better to operate on monads and leave decision how to unwrap them for later. Consider this next time when you will try to get value from Optional, CompletableFuture or some other monadic type. I hope you've learned here one or two methods how to simplify your design using operations on Monads.
 
 Code is available on [Gist] - feel free to play with it.
 
 `Have a nice hack ;)`
 
-### Referrers
+## Referrers
 
  * [Monads for Java developers: Part 1 — The Optional monad](https://medium.com/@afcastano/monads-for-java-developers-part-1-the-optional-monad-aa6e797b8a6e)
  * [Monads for Java developers: Part 2 — Two monads more](https://medium.com/@afcastano/monads-for-java-developers-part-2-the-result-and-log-monads-a9ecc0f231bb)

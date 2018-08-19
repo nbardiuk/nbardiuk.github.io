@@ -19,7 +19,7 @@ So sequence is a function that for a given container of wrapped values produces 
 
 Let me walk you through some common Java types with Applicative semantics and explain sequencing by example.  
 
-#### Optional
+## Optional
 
 
 ```java
@@ -48,7 +48,7 @@ sequence(parse("1"), parse("X"), parse("3"))
 
 Such semantics is useful when we cannot just ignore empty values and need to invalidate the whole list as soon as one of items is empty.
 
-#### CompletableFuture
+## CompletableFuture
 
 ```java
 CompletableFuture<List<T>> sequence(CompletableFuture<T> ... futures)
@@ -80,7 +80,7 @@ sequence(async(1), async(2), async(3)).thenApply(this::sum)
 // CompletableFuture[[6]]
 ```
 
-#### List
+## List
 
 ```java
 List<List<T>> sequence(List<T> ... lists)
@@ -110,7 +110,7 @@ sequence(asList("J", "Q", "K", "A"),
 // [A, Clubs], [A, Diamonds], [A, Hearts], [A, Spades]]
 ```
 
-#### Function
+## Function
 
 ```java
 Function<A, List<T>> sequence(Function<A, T> ... functions)
