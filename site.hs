@@ -66,9 +66,9 @@ postCtx = dateField "date" "%B %e, %Y"
 
 brokenLinks :: [(Identifier, String)]
 brokenLinks =
-    [ ("java-monad/index.html", "/posts/2015-11-08-java-monad.html")
-    , ("game-of-live-clojure/index.html", "/posts/2014-11-29-quil.html")
-    , ("java-sequence/index.html", "/posts/2016-10-16-java-sequence.html")
+    [ ("java-monad/index.html", "/posts/java-monad.html")
+    , ("game-of-live-clojure/index.html", "/posts/game-of-live-clojure.html")
+    , ("java-sequence/index.html", "/posts/java-sequence.html")
     ]
 
 feedConfig :: FeedConfiguration
