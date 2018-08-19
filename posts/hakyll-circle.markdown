@@ -21,6 +21,7 @@ It is inspired by configurations found on the Internet.
 * [Cache compiled dependencies](#cache-compiled-dependencies)
 * [Generate content](#generate-content)
 * [Push `_site` content to GitHub pages](#push-_site-content-to-github-pages)
+* [Referrers](#referrers)
 
 <!-- vim-markdown-toc -->
 
@@ -104,3 +105,8 @@ content by `git push --force`
             git remote add origin "$CIRCLE_REPOSITORY_URL"
             git push --force origin master
 ```
+
+## Referrers
+
+* [`@nbardiuk`](https://twitter.com/nbardiuk/status/1031151015175831553)
+* [r/haskell](https://www.reddit.com/r/haskell/comments/98jtii/how_to_hakyll_circleci_20/)
