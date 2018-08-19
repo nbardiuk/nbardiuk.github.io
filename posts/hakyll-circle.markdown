@@ -71,7 +71,7 @@ time drops to less than a minute.
 
 ## Generate content
 
-Builds `site` application and uses it generate static content
+Builds `site` application and uses it to generate static content
 
 ```yaml
       - run:
