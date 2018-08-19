@@ -32,6 +32,6 @@ jobs:
             git config user.name  'CircleCI'
             git config user.email 'job@circleci.com'
             git add .
-            git commit -m "publish $CIRCLE_SHA1"
+            git commit -m "publish $CIRCLE_SHA1 [ci skip]"
             git remote add origin "$CIRCLE_REPOSITORY_URL"
             git push --force origin master
