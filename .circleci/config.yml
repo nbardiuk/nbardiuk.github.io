@@ -6,27 +6,32 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          name: Restore cached dependencies
+          name: Restore Cached Dependencies
           keys:
+            # find a cache for the same stack.yaml
             - stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
+            # when missing reuse from the same branch
+            - stack-{{ .Branch }}-
+            # when missing reuse the latest cache
+            - stack-
       - run:
-          name: Resolve dependencies
+          name: Resolve/Update Dependencies
           command: stack setup
           command: stack build --dependencies-only
       - save_cache:
-          name: Cache dependencies
+          name: Cache Dependencies
           key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
           paths:
             - ~/.stack
             - ./.stack-work
       - run:
-          name: Build site app
+          name: Build Site App
           command: stack build --pedantic
       - run:
-          name: Generate static site
+          name: Generate Static Site
           command: stack exec site build
       - run:
-          name: Publish GitHub pages
+          name: Publish GitHub Pages
           working_directory: './_site'
           command: |
             # initalize repo
