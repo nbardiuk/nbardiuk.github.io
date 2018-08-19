@@ -108,5 +108,5 @@ content by `git push --force`
 
 ## Referrers
 
-* [`@nbardiuk`](https://twitter.com/nbardiuk/status/1031151015175831553)
+* [`@nbardiuk`](https://twitter.com/nbardiuk/status/1031156387185930240)
 * [r/haskell](https://www.reddit.com/r/haskell/comments/98jtii/how_to_hakyll_circleci_20/)
