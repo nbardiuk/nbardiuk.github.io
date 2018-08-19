@@ -6,32 +6,36 @@ jobs:
     steps:
       - checkout
       - restore_cache:
+          name: Restore cached dependencies
           keys:
             - stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
-            - stack-{{ .Branch }}
-            - stack-
       - run:
-          name: Setup Slack
+          name: Resolve dependencies
           command: stack setup
-      - run:
-          name: Build Site App
-          command: stack build
+          command: stack build --dependencies-only
       - save_cache:
+          name: Cache dependencies
           key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
           paths:
             - ~/.stack
             - ./.stack-work
       - run:
-          name: Generate Static Site
+          name: Build site app
+          command: stack build --pedantic
+      - run:
+          name: Generate static site
           command: stack exec site build
       - run:
-          name: Publish To GitHub
+          name: Publish GitHub pages
           working_directory: './_site'
           command: |
+            # initalize repo
             git init
             git config user.name  'CircleCI'
             git config user.email 'job@circleci.com'
+            # add generated files
             git add .
             git commit -m "publish $CIRCLE_SHA1 [ci skip]"
+            # push to pages branch
             git remote add origin "$CIRCLE_REPOSITORY_URL"
             git push --force origin master
