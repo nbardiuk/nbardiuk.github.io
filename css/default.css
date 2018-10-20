@@ -24,6 +24,14 @@ main {
   grid-column: 2;
 }
 
+footer {
+  grid-column: 1 / -1;
+  grid-row: -1 / span;
+  margin-top: 3rem;
+  text-align: center;
+  color: #444;
+}
+
 h1, h2, h3 {
   color: #333;
   margin-top: 2rem;
