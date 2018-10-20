@@ -33,8 +33,8 @@ Docker is the simplest [executor type](https://circleci.com/docs/2.0/executor-ty
 This configuration reuses [FPComplete's image](https://hub.docker.com/r/fpco/stack-build/) with stack to avoid custom installation scripts.
 
 ```yaml
-    docker:
-      - image: fpco/stack-build:lts
+docker:
+  - image: fpco/stack-build:lts
 ```
 
 ## Cache compiled dependencies
@@ -47,25 +47,25 @@ With [caching configuration](https://circleci.com/docs/2.0/caching/) building
 time drops to less than a minute.
 
 ```yaml
-      - restore_cache:
-          name: Restore Cached Dependencies
-          keys:
-            # find a cache for the same stack.yaml
-            - stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
-            # when missing reuse from the same branch
-            - stack-{{ .Branch }}-
-            # when missing reuse the latest cache
-            - stack-
-      - run:
-          name: Resolve/Update Dependencies
-          command: stack setup
-          command: stack build --dependencies-only
-      - save_cache:
-          name: Cache Dependencies
-          key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
-          paths:
-            - ~/.stack
-            - ./.stack-work
+- restore_cache:
+    name: Restore Cached Dependencies
+    keys:
+      # find a cache for the same stack.yaml
+      - stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
+      # when missing reuse from the same branch
+      - stack-{{ .Branch }}-
+      # when missing reuse the latest cache
+      - stack-
+- run:
+    name: Resolve/Update Dependencies
+    command: stack setup
+    command: stack build --dependencies-only
+- save_cache:
+    name: Cache Dependencies
+    key: stack-{{ .Branch }}-{{ checksum "stack.yaml" }}
+    paths:
+      - ~/.stack
+      - ./.stack-work
 ```
 
 
@@ -74,12 +74,12 @@ time drops to less than a minute.
 Builds `site` application and uses it to generate static content
 
 ```yaml
-      - run:
-          name: Build Site App
-          command: stack build --pedantic
-      - run:
-          name: Generate Static Site
-          command: stack exec site build
+- run:
+    name: Build Site App
+    command: stack build --pedantic
+- run:
+    name: Generate Static Site
+    command: stack exec site build
 ```
 
 
@@ -90,20 +90,20 @@ environment so it makes more sense to keep it clean and wipe previous site
 content by `git push --force`
 
 ```yaml
-      - run:
-          name: Publish GitHub Pages
-          working_directory: './_site'
-          command: |
-            # initalize repo
-            git init
-            git config user.name  'CircleCI'
-            git config user.email 'job@circleci.com'
-            # add generated files
-            git add .
-            git commit -m "publish $CIRCLE_SHA1 [ci skip]"
-            # push to pages branch
-            git remote add origin "$CIRCLE_REPOSITORY_URL"
-            git push --force origin master
+- run:
+    name: Publish GitHub Pages
+    working_directory: './_site'
+    command: |
+      # initalize repo
+      git init
+      git config user.name  'CircleCI'
+      git config user.email 'job@circleci.com'
+      # add generated files
+      git add .
+      git commit -m "publish $CIRCLE_SHA1 [ci skip]"
+      # push to pages branch
+      git remote add origin "$CIRCLE_REPOSITORY_URL"
+      git push --force origin master
 ```
 
 ## Referrers
