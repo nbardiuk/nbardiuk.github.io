@@ -32,10 +32,10 @@ main = hakyll $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
-      let indexCtx =
-            listField "posts" postCtx (return posts)
-              `mappend` constField "title" ""
-              `mappend` defaultContext
+      let indexCtx = mconcat
+            [ listField "posts" postCtx (return posts)
+            , constField "title" ""
+            , defaultContext]
 
       getResourceBody
         >>= applyAsTemplate indexCtx
@@ -62,7 +62,10 @@ main = hakyll $ do
       >>= relativizeUrls
 
 postCtx :: Context String
-postCtx = dateField "date" "%B %e, %Y" `mappend` defaultContext
+postCtx = mconcat
+          [ dateField "humandate" "%B %e, %Y" 
+          , dateField "machinedate" "%Y-%m-%dT%H:%M:%SZ" 
+          , defaultContext]
 
 brokenLinks :: [(Identifier, String)]
 brokenLinks =
