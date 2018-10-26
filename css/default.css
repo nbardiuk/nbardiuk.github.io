@@ -79,6 +79,24 @@ p {
   margin-bottom: 0.5rem;
 }
 
+pre {
+    overflow: visible;
+    position: relative;
+}
+pre::before {
+    color: #657B83;
+    display: inline;
+    position: absolute;
+    text-transform: uppercase;
+    right: 0em;
+    top: 0em;
+}
+pre.clojure::before { content: "clojure"; }
+pre.haskell::before { content: "haskell"; }
+pre.java::before { content: "java"; }
+pre.scala::before { content: "scala"; }
+pre.yaml::before { content: "yaml"; }
+
 div.sourceCode {
   font-family: monospace;
   padding: 0.5rem 0.5rem;
