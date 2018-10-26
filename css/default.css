@@ -84,12 +84,13 @@ pre {
     position: relative;
 }
 pre::before {
-    color: #657B83;
     display: inline;
     position: absolute;
+    color: #657B83;
+    font-style: italic;
     text-transform: uppercase;
+    bottom: -1em;
     right: 0em;
-    top: 0em;
 }
 pre.clojure::before { content: "clojure"; }
 pre.haskell::before { content: "haskell"; }
