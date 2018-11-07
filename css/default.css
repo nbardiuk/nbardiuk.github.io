@@ -76,12 +76,14 @@ article .header {
 }
 
 p {
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 pre {
     overflow: visible;
     position: relative;
+    margin-top: 1.5em;
 }
 pre::before {
     display: inline;
@@ -89,8 +91,7 @@ pre::before {
     color: #657B83;
     font-style: italic;
     text-transform: uppercase;
-    bottom: -1em;
-    right: 0em;
+    top: -2em;
 }
 pre.clojure::before { content: "clojure"; }
 pre.haskell::before { content: "haskell"; }
