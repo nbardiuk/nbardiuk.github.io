@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title> Game Of Live in Clojure with Quil @  Nazarii's blog</title>
+        <link rel="icon" href="../favicon.ico">
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../css/syntax.css" />
+        <meta name="google-site-verification" content="1eqgeS8dNQrx_2L4hO1e5FzIq3AbotzOVmASihAsJVA" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/xmlrpc" rel="pingback" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/webmention" rel="webmention" />
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <a href="../">Nazarii's blog</a>
+            </div>
+        </header>
+        <main role="main">
+            <article class="h-entry">
+    <link class="u-url" href="../posts/game-of-live-clojure.html">
+    <link rel="author" class="p-author h-card" href="../" />
+    <section class="header">
+        <h1 class="p-name">Game Of Live in Clojure with Quil</h1>
+        Posted on <time class="dt-published" datetime="2014-11-29T06:54:00Z">November 29, 2014</time>
+    </section>
+    <section class="e-content">
+        <p>This is my attempt to implement <a href="http://www.conwaylife.com/wiki/Conway%27s_Game_of_Life">Conway’s Game of Life</a> in Clojure using Quil library.</p>
+<h2 id="game-of-life">Game of Life</h2>
+<p><img src="../images/112P51.gif" style="float: right; margin: 10px;" /> There is an infinite grid of cells that can be alive or dead. For each iteration state of the grid is recalculated using several rules:</p>
+<ul>
+<li>Alive cell with 2 or 3 alive neighbors will live, in other cases it will die.</li>
+<li>A dead cell will become alive only if it has 3 alive neighbors.</li>
+</ul>
+<p>Such simple rules create a lot of interesting and complex patterns. For example, oscillator - a pattern that evolves in itself after number of iterations.</p>
+<h2 id="quil">Quil</h2>
+<p><a href="http://quil.info">Quil</a> is a Clojure wrapper around Processing. Dynamic nature of Clojure and simple Processing API for graphics gives ability to quickly prototype algorithmic graphics. Checkout <a href="https://github.com/quil/quil/wiki/Dynamic-Workflow-%28for-LightTable%29">Quil LightTable tutorial</a> and try their dynamic workflow.</p>
+<p>Basic Quil application with <a href="https://github.com/quil/quil/wiki/Functional-mode-%28fun-mode%29">funcional mode</a> consists of 3 main functions: setup, update and draw. Each function works with the state - a map of everything you need on the scene. Instead of updating global variables for each frame, Quil gives us an API to deal with program state in a functional way.</p>
+<h2 id="setup">Setup</h2>
+<p>is called once before the first frame. The main goal is to setup Quil scene and create a state map.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb1-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> setup </span>[]</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  (q/frame-rate <span class="dv">10</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  (q/color-mode <span class="at">:hsb</span>)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="co">; initial state</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">  {<span class="at">:life</span> #{[<span class="dv">24</span> <span class="dv">8</span>] [<span class="dv">37</span> <span class="dv">8</span>] [<span class="dv">17</span> <span class="dv">9</span>]}</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">   <span class="at">:cell-size</span> <span class="dv">5</span>})</a></code></pre></div>
+<p>Here <code>:life</code> is a set of all alive cells. Usually, developers implement grid by a twodimensional matrix. I’ve found working with the set just more comfortable for infinitely large grid.</p>
+<h2 id="update">Update</h2>
+<p>is a function that transforms the state for every frame.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb2-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> update </span>[state]</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  (<span class="kw">let</span> [life (<span class="at">:life</span> state)</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">        candidates (<span class="kw">set</span> (<span class="kw">mapcat</span> square life))</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">        next-life (<span class="kw">set</span> (<span class="kw">filter</span> #(will-live? life <span class="va">%</span>) candidates))] </a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">    (<span class="kw">assoc</span> state <span class="at">:life</span> next-life)))</a></code></pre></div>
+<p>First it creates <code>candidates</code> - the set of all alive cells and their empty neighbors. Only those cells can be alive in the next iteration. Next it creates <code>next-life</code> set from <code>candidates</code> that will survive this iteration.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb3-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> square </span>[[x y]]</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">  <span class="st">&quot;Gets a 3x3 square of points with a center at point [x y]&quot;</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">  (<span class="kw">for</span> [dx [-<span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">        dy [-<span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">    [(<span class="kw">+</span> x dx) (<span class="kw">+</span> y dy)]))</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">(<span class="bu">defn</span><span class="fu"> alive-neighbors </span>[life point]</a>
+<a class="sourceLine" id="cb3-8" data-line-number="8">  <span class="st">&quot;Counts alive neighbors for point [x y]&quot;</span></a>
+<a class="sourceLine" id="cb3-9" data-line-number="9">  (<span class="kw">-&gt;&gt;</span> (neighbors point)</a>
+<a class="sourceLine" id="cb3-10" data-line-number="10">       (<span class="kw">filter</span> #(<span class="kw">contains?</span> life <span class="va">%</span>)) <span class="co">; alive neighbors</span></a>
+<a class="sourceLine" id="cb3-11" data-line-number="11">       <span class="kw">count</span>))</a>
+<a class="sourceLine" id="cb3-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb3-13" data-line-number="13">(<span class="bu">defn</span><span class="fu"> will-live? </span>[life point]</a>
+<a class="sourceLine" id="cb3-14" data-line-number="14">  <span class="st">&quot;Checks whether point will live for current life state&quot;</span></a>
+<a class="sourceLine" id="cb3-15" data-line-number="15">  (<span class="kw">let</span> [n (alive-neighbors life point)]</a>
+<a class="sourceLine" id="cb3-16" data-line-number="16">    (<span class="kw">or</span> (<span class="kw">=</span> n <span class="dv">3</span>) (<span class="kw">and</span> (<span class="kw">=</span> n <span class="dv">2</span>) (<span class="kw">contains?</span> life point)))))</a></code></pre></div>
+<h2 id="draw">Draw</h2>
+<p>function takes a state and draws a frame.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb4-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> draw </span>[state]</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  (q/background <span class="dv">240</span>) <span class="co">; background color</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">  (q/stroke <span class="dv">220</span>) <span class="co">; cell border color</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">  (q/fill <span class="dv">180</span>) <span class="co">; cell body color</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">  (<span class="kw">doseq</span> [[x y] (<span class="at">:life</span> state)</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">          <span class="at">:let</span> [w (<span class="at">:cell-size</span> state)]]</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">    (q/rect (<span class="kw">*</span> w x) (<span class="kw">*</span> w y) w w <span class="dv">2</span>)))</a></code></pre></div>
+<p>It is simple like that. Just clears scene and draws a square for every alive cell.</p>
+<h2 id="tltr">TL;TR</h2>
+<p>The whole project with instructions how to run it is available on <a href="http://github.com/nbardiuk/gol">github</a>. Fill free to play with it.</p>
+<p><code>Have a nice hack ;)</code></p>
+    </section>
+</article>
+
+        </main>
+        <footer class="h-card">
+          © 2014–2018 <span class="p-name">Nazarii Bardiuk</span>
+          <link class="u-url" href="https://nazarii.bardiu.com" rel="me" />
+          <link class="u-email" href="mailto:nazarii@bardiuk.com" rel="me" />
+          <link href="https://github.com/nbardiuk" rel="me" />
+          <link href="https://twitter.com/nbardiuk" rel="me" />
+          <link href="https://mastodon.social/@Nbardiuk" rel="me" />
+          <link href="https://keybase.io/nbardiuk" rel="me" />
+        </footer>
+    </body>
+</html>

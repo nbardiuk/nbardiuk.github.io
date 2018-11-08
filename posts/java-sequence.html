@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title> Java Sequence @  Nazarii's blog</title>
+        <link rel="icon" href="../favicon.ico">
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../css/syntax.css" />
+        <meta name="google-site-verification" content="1eqgeS8dNQrx_2L4hO1e5FzIq3AbotzOVmASihAsJVA" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/xmlrpc" rel="pingback" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/webmention" rel="webmention" />
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <a href="../">Nazarii's blog</a>
+            </div>
+        </header>
+        <main role="main">
+            <article class="h-entry">
+    <link class="u-url" href="../posts/java-sequence.html">
+    <link rel="author" class="p-author h-card" href="../" />
+    <section class="header">
+        <h1 class="p-name">Java Sequence</h1>
+        Posted on <time class="dt-published" datetime="2016-10-16T22:00:00Z">October 16, 2016</time>
+    </section>
+    <section class="e-content">
+        <p>In this article I would like to explore a <code>sequence</code> function and its implementation in Java.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb1-1" data-line-number="1">Applicative&lt;Traversable&lt;T&gt;&gt; <span class="fu">sequence</span>(Traversable&lt;Applicative&lt;T&gt;&gt; values)</a></code></pre></div>
+<p>You can think about <code>Traversable&lt;T&gt;</code> as an interface that describes a container of values <code>T</code>, something like <code>Iterable&lt;T&gt;</code>. I am going to use <code>T[]</code> and <code>List&lt;T&gt;</code> as an example.</p>
+<p><code>Applicative&lt;T&gt;</code> is sort of context for values <code>T</code>, and it allows to join several such values in contexts together. There is no similar interface in Java but there are several types that have similar behavior.</p>
+<p>So sequence is a function that for a given container of wrapped values produces a wrapped container of values.</p>
+<p>Let me walk you through some common Java types with Applicative semantics and explain sequencing by example.</p>
+<h2 id="optional">Optional</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb2-1" data-line-number="1">Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(Optional&lt;T&gt; <span class="kw">... </span>optionals)</a></code></pre></div>
+<p><code>Optional</code> represents a value that can be absent. Joining together several potentially absent values produces a potentially absent result.</p>
+<p>So a sequence of optional values is going to produce an optional list, and it will be present as long as all of optionals are present.</p>
+<p>Consider a function <code>parse</code> that extracts a number from a string, if it represents a valid integer.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb3-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; <span class="fu">parse</span>(<span class="bu">String</span> number)</a></code></pre></div>
+<p>We can use sequence to group individual parsed numbers into parsed list.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>))</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="co">// Optional[[1,2,3]]</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">sequence</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;X&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>))</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="co">// Optional.empty</span></a></code></pre></div>
+<p>Such semantics is useful when we cannot just ignore empty values and need to invalidate the whole list as soon as one of items is empty.</p>
+<h2 id="completablefuture">CompletableFuture</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb5-1" data-line-number="1">CompletableFuture&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(CompletableFuture&lt;T&gt; <span class="kw">... </span>futures)</a></code></pre></div>
+<p><code>CompletableFuture</code> is a representation of asynchronous computation that will provide a value in the future.</p>
+<p>If we sequence a list of futures it should produce an asynchronous list that is going to be available later, after completion of all futures.</p>
+<p>It also has all or nothing semantics - result will be available only after all of futures are completed.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb6-1" data-line-number="1">CompletableFuture&lt;T&gt; <span class="fu">async</span>(T i) <span class="co">// produces later</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">CompletableFuture&lt;T&gt; <span class="fu">failed</span>()   <span class="co">// finishes exceptionally</span></a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">async</span>(<span class="dv">1</span>), <span class="fu">async</span>(<span class="dv">2</span>), <span class="fu">async</span>(<span class="dv">3</span>))</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="co">// CompletableFuture[[1,2,3]]</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="fu">sequence</span>(<span class="fu">async</span>(<span class="dv">1</span>), <span class="fu">failed</span>(), <span class="fu">async</span>(<span class="dv">3</span>))</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="co">// CompletableFuture.failed</span></a></code></pre></div>
+<p>It allows to build continuations without blocking on individual results</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">async</span>(<span class="dv">1</span>), <span class="fu">async</span>(<span class="dv">2</span>), <span class="fu">async</span>(<span class="dv">3</span>)).<span class="fu">thenApply</span>(<span class="kw">this</span>::sum)</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="co">// CompletableFuture[[6]]</span></a></code></pre></div>
+<h2 id="list">List</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="bu">List</span>&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(<span class="bu">List</span>&lt;T&gt; <span class="kw">... </span>lists)</a></code></pre></div>
+<p>Previously I’ve used <code>List</code> as an example for container. But it can also be treated as an Applicative.</p>
+<p>List represents a choice between zero to many possible values. Joining several choices together leads to multiplication of possibilities.</p>
+<p>In this sense sequence of lists produces their Cartesian product.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">asList</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="fu">asList</span>(<span class="dv">10</span>, <span class="dv">20</span>), <span class="fu">asList</span>(<span class="dv">100</span>))</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co">// [[1, 10, 100], [1, 20, 100], [2, 10, 100], [2, 20, 100]]</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="fu">sequence</span>(<span class="fu">asList</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="fu">emptyList</span>(), <span class="fu">asList</span>(<span class="dv">10</span>, <span class="dv">20</span>))</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="co">// []</span></a></code></pre></div>
+<p>Usually Cartesian product is used to generate combinations of values</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">asList</span>(<span class="st">&quot;J&quot;</span>, <span class="st">&quot;Q&quot;</span>, <span class="st">&quot;K&quot;</span>, <span class="st">&quot;A&quot;</span>), </a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">         <span class="fu">asList</span>(<span class="st">&quot;Clubs&quot;</span>, <span class="st">&quot;Diamonds&quot;</span>, <span class="st">&quot;Hearts&quot;</span>, <span class="st">&quot;Spades&quot;</span>))</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"><span class="co">// [[J, Clubs], [J, Diamonds], [J, Hearts], [J, Spades],</span></a>
+<a class="sourceLine" id="cb11-4" data-line-number="4"><span class="co">// [Q, Clubs], [Q, Diamonds], [Q, Hearts], [Q, Spades],</span></a>
+<a class="sourceLine" id="cb11-5" data-line-number="5"><span class="co">// [K, Clubs], [K, Diamonds], [K, Hearts], [K, Spades],</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6"><span class="co">// [A, Clubs], [A, Diamonds], [A, Hearts], [A, Spades]]</span></a></code></pre></div>
+<h2 id="function">Function</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb12-1" data-line-number="1">Function&lt;A, <span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(Function&lt;A, T&gt; <span class="kw">... </span>functions)</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">BiFunction&lt;A, B, <span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(BiFunction&lt;A, B, T&gt; <span class="kw">... </span>functions)</a></code></pre></div>
+<p><code>Function</code> can be also viewed as a context for value, a value that will be computed from some key.</p>
+<p>Sequence of functions is a function that for a given input computes a list of values.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="fu">sequence</span>(Person::name, Person::surname).<span class="fu">apply</span>(<span class="fu">person</span>(<span class="st">&quot;John&quot;</span>, <span class="st">&quot;Doe&quot;</span>))  </a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="co">// [John, Doe]</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="fu">sequence</span>(<span class="bu">Integer</span>::sum, <span class="bu">Integer</span>::max, <span class="bu">Integer</span>::min).<span class="fu">apply</span>(<span class="dv">100</span>, <span class="dv">200</span>)</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="co">// [300, 200, 100]</span></a></code></pre></div>
+<h2 id="implementation">Implementation</h2>
+<p>The most common approach to implement <code>sequence</code> is to fold over items. Java’s analogy would be a reduction of <code>Stream</code></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb14-1" data-line-number="1">&lt;T&gt; Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(<span class="bu">List</span>&lt;Optional&lt;T&gt;&gt; optionals) {</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">  <span class="kw">return</span> optionals.<span class="fu">stream</span>().<span class="fu">reduce</span>(</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="co">// Initial value Optional&lt;List&lt;T&gt;&gt;</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">    Optional.<span class="fu">of</span>(<span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;()),</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6"><span class="co">// Accumulator BiFunction&lt;Optional&lt;List&lt;T&gt;&gt;, Optional&lt;T&gt;, Optional&lt;List&lt;T&gt;&gt;&gt;</span></a>
+<a class="sourceLine" id="cb14-7" data-line-number="7">    (result, optional) -&gt; result.<span class="fu">flatMap</span>(list -&gt; optional.<span class="fu">map</span>(item -&gt; {</a>
+<a class="sourceLine" id="cb14-8" data-line-number="8">      list.<span class="fu">add</span>(item);</a>
+<a class="sourceLine" id="cb14-9" data-line-number="9">      <span class="kw">return</span> list;</a>
+<a class="sourceLine" id="cb14-10" data-line-number="10">    })),</a>
+<a class="sourceLine" id="cb14-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb14-12" data-line-number="12"><span class="co">// Combiner BinaryOperator&lt;Optional&lt;List&lt;T&gt;&gt;  </span></a>
+<a class="sourceLine" id="cb14-13" data-line-number="13">    (result, chunk) -&gt; result.<span class="fu">flatMap</span>(left -&gt; chunk.<span class="fu">map</span>(right -&gt; {</a>
+<a class="sourceLine" id="cb14-14" data-line-number="14">      <span class="bu">List</span>&lt;T&gt; r = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(left);</a>
+<a class="sourceLine" id="cb14-15" data-line-number="15">      r.<span class="fu">addAll</span>(right);</a>
+<a class="sourceLine" id="cb14-16" data-line-number="16">      <span class="kw">return</span> r;</a>
+<a class="sourceLine" id="cb14-17" data-line-number="17">    })));</a>
+<a class="sourceLine" id="cb14-18" data-line-number="18">}</a></code></pre></div>
+<p><code>Identity</code> value in reduction is an option of empty list (which is going to be a result if stream is empty). <code>Accumulator</code> joins together previously accumulated optional list and current optional value. Finally <code>combiner</code> takes two optional lists that have been produced in parallel and joins them together.</p>
+<p>Note that both accumulator and combiner will produce an empty <code>Optional</code> if at least one of arguments is empty.</p>
+<p>Accumulator and combiner has the same structure - if both optionals are present then function is applied to their arguments. Lets exploit this pattern and make some refactoring</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb15-1" data-line-number="1">&lt;T&gt; Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(<span class="bu">List</span>&lt;Optional&lt;T&gt;&gt; optionals) {</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">  <span class="kw">return</span> optionals.<span class="fu">stream</span>().<span class="fu">reduce</span>(</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">    <span class="fu">pure</span>(<span class="fu">emptyList</span>()),</a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">    <span class="fu">lift</span>(<span class="fu">add</span>()),</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">    <span class="fu">lift</span>(<span class="fu">addAll</span>()));</a>
+<a class="sourceLine" id="cb15-6" data-line-number="6">}</a>
+<a class="sourceLine" id="cb15-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb15-8" data-line-number="8">&lt;A, B, C&gt; BiFunction&lt;Optional&lt;A&gt;, Optional&lt;B&gt;, Optional&lt;C&gt;&gt;</a>
+<a class="sourceLine" id="cb15-9" data-line-number="9"><span class="fu">lift</span>(BiFunction&lt;A, B, C&gt; f) {</a>
+<a class="sourceLine" id="cb15-10" data-line-number="10">  <span class="kw">return</span> (oa, ob) -&gt; oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; f.<span class="fu">apply</span>(a, b)));</a>
+<a class="sourceLine" id="cb15-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb15-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb15-13" data-line-number="13">&lt;A&gt; BinaryOperator&lt;Optional&lt;A&gt;&gt; <span class="fu">lift</span>(BinaryOperator&lt;A&gt; f) {</a>
+<a class="sourceLine" id="cb15-14" data-line-number="14">  <span class="kw">return</span> (oa, ob) -&gt; oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; f.<span class="fu">apply</span>(a, b)));</a>
+<a class="sourceLine" id="cb15-15" data-line-number="15">}</a>
+<a class="sourceLine" id="cb15-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb15-17" data-line-number="17">&lt;T&gt; Optional&lt;T&gt; <span class="fu">pure</span>(T value) {</a>
+<a class="sourceLine" id="cb15-18" data-line-number="18">  <span class="kw">return</span> Optional.<span class="fu">of</span>(value);</a>
+<a class="sourceLine" id="cb15-19" data-line-number="19">}</a>
+<a class="sourceLine" id="cb15-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb15-21" data-line-number="21">&lt;T&gt; BiFunction&lt;<span class="bu">List</span>&lt;T&gt;, T, <span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">add</span>() {</a>
+<a class="sourceLine" id="cb15-22" data-line-number="22">  <span class="kw">return</span> (ts, t) -&gt; {</a>
+<a class="sourceLine" id="cb15-23" data-line-number="23">    <span class="bu">ArrayList</span>&lt;T&gt; result = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(ts);</a>
+<a class="sourceLine" id="cb15-24" data-line-number="24">    result.<span class="fu">add</span>(t);</a>
+<a class="sourceLine" id="cb15-25" data-line-number="25">    <span class="kw">return</span> result;</a>
+<a class="sourceLine" id="cb15-26" data-line-number="26">  };</a>
+<a class="sourceLine" id="cb15-27" data-line-number="27">}</a>
+<a class="sourceLine" id="cb15-28" data-line-number="28"></a>
+<a class="sourceLine" id="cb15-29" data-line-number="29">&lt;T&gt; BinaryOperator&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">addAll</span>() {</a>
+<a class="sourceLine" id="cb15-30" data-line-number="30">  <span class="kw">return</span> (ts, ts2) -&gt; {</a>
+<a class="sourceLine" id="cb15-31" data-line-number="31">    <span class="bu">ArrayList</span>&lt;T&gt; result = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(ts);</a>
+<a class="sourceLine" id="cb15-32" data-line-number="32">    result.<span class="fu">addAll</span>(ts2);</a>
+<a class="sourceLine" id="cb15-33" data-line-number="33">    <span class="kw">return</span> result;</a>
+<a class="sourceLine" id="cb15-34" data-line-number="34">  };</a>
+<a class="sourceLine" id="cb15-35" data-line-number="35">}</a></code></pre></div>
+<p>Note 2 functions:</p>
+<ul>
+<li><code>lift</code> transforms a function to work on <code>Optional</code> arguments</li>
+<li><code>pure</code> wraps a value into <code>Optional</code></li>
+</ul>
+<p>These functions are part of <code>Applicative</code>, an interface which satisfy all previous example types. It means that for all of them reduction will look the same, as soon as we manage to provide <code>lift</code> and <code>pure</code> implementations.</p>
+<p>Let’s do it for <code>CompletableFuture</code></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb16-1" data-line-number="1">&lt;T&gt; CompletableFuture&lt;<span class="bu">List</span>&lt;T&gt;&gt; </a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="fu">sequence</span>(<span class="bu">List</span>&lt;CompletableFuture&lt;T&gt;&gt; futures) {</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">  <span class="kw">return</span> futures.<span class="fu">stream</span>().<span class="fu">reduce</span>(</a>
+<a class="sourceLine" id="cb16-4" data-line-number="4">    <span class="fu">pure</span>(<span class="fu">emptyList</span>()),</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">    <span class="fu">lift</span>(<span class="fu">add</span>()),</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">    <span class="fu">lift</span>(<span class="fu">addAll</span>()));</a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">}</a>
+<a class="sourceLine" id="cb16-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb16-9" data-line-number="9">&lt;T&gt; CompletableFuture&lt;T&gt; <span class="fu">pure</span>(T t) {</a>
+<a class="sourceLine" id="cb16-10" data-line-number="10">  <span class="kw">return</span> <span class="fu">completedFuture</span>(t);</a>
+<a class="sourceLine" id="cb16-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb16-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb16-13" data-line-number="13">&lt;A, B, C&gt; BiFunction&lt;CompletableFuture&lt;A&gt;, CompletableFuture&lt;B&gt;, CompletableFuture&lt;C&gt;&gt;</a>
+<a class="sourceLine" id="cb16-14" data-line-number="14"><span class="fu">lift</span>(BiFunction&lt;A, B, C&gt; f) {</a>
+<a class="sourceLine" id="cb16-15" data-line-number="15">  <span class="kw">return</span> (fa, fb) -&gt; fa.<span class="fu">thenCombine</span>(fb, f);</a>
+<a class="sourceLine" id="cb16-16" data-line-number="16">}</a>
+<a class="sourceLine" id="cb16-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb16-18" data-line-number="18">&lt;A&gt; BinaryOperator&lt;CompletableFuture&lt;A&gt;&gt; <span class="fu">lift</span>(BinaryOperator&lt;A&gt; f) {</a>
+<a class="sourceLine" id="cb16-19" data-line-number="19">  <span class="kw">return</span> (fa, fb) -&gt; fa.<span class="fu">thenCombine</span>(fb, f);</a>
+<a class="sourceLine" id="cb16-20" data-line-number="20">}</a></code></pre></div>
+<p>Bodies of <code>sequence</code> implementations are identical, that is a place for generalization. Unfortunately Java’s type system is not powerful enough to represent generic type with generic parameter, i.e. <a href="http://adriaanm.github.io/files/higher.pdf">Generics of higher kind</a>.</p>
+<p>So we cannot extract type safe notion of <code>Applicative</code> for <code>sequence</code> function</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb17-1" data-line-number="1">&lt;T, A <span class="kw">extends</span> Applicative&gt; A&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(A&lt;T&gt; <span class="kw">... </span>applicatives)</a></code></pre></div>
+<h2 id="composition">Composition</h2>
+<p>Anyway we have a space for reuse. In my daily work Streams become a tool for composition of operations over some collection of items. A situation when I need to implement similar reduction are not unique.</p>
+<p>I have two options:</p>
+<ul>
+<li>collect result to list and use sequence function over it</li>
+<li>reimplement the same reduction as above</li>
+</ul>
+<p>Collections of list to stream usually is a little bit premature. So we need to extract reduction. The way to reuse reduction functionality in <code>Stream</code> API is to create a <code>Collector</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb18-1" data-line-number="1">&lt;T&gt; Collector&lt;Optional&lt;T&gt;, ?, Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt;&gt; <span class="fu">optionals</span>()</a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">Optional&lt;<span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt; result =</a>
+<a class="sourceLine" id="cb18-4" data-line-number="4">  Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>)).<span class="fu">collect</span>(<span class="fu">optionals</span>())</a>
+<a class="sourceLine" id="cb18-5" data-line-number="5"><span class="co">//Optional[1, 2, 3]</span></a></code></pre></div>
+<p>We can go one step further and generalize resulting container, by using composition of collectors.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb19-1" data-line-number="1">&lt;T, A, R&gt; Collector&lt;Optional&lt;T&gt;, ?, Optional&lt;R&gt;&gt;</a>
+<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="fu">optionals</span>(Collector&lt;T, A, R&gt; downstream) {</a>
+<a class="sourceLine" id="cb19-3" data-line-number="3">  <span class="kw">return</span> <span class="fu">collector</span>(</a>
+<a class="sourceLine" id="cb19-4" data-line-number="4">    <span class="fu">lift</span>(downstream.<span class="fu">supplier</span>()),</a>
+<a class="sourceLine" id="cb19-5" data-line-number="5">    <span class="fu">lift</span>(<span class="fu">accumulator</span>(downstream)),</a>
+<a class="sourceLine" id="cb19-6" data-line-number="6">    <span class="fu">lift</span>(<span class="fu">combiner</span>(downstream)),</a>
+<a class="sourceLine" id="cb19-7" data-line-number="7">    <span class="fu">lift</span>(downstream.<span class="fu">finisher</span>()));</a>
+<a class="sourceLine" id="cb19-8" data-line-number="8">}</a></code></pre></div>
+<p>It takes a collector of values and lifts it into <code>Optional</code> context such that it collects optionals with semantics of <code>sequence</code> operation.</p>
+<p>Its implementation is a little bit more involved but has the same approach - it lifts each part of downstream collector into <code>Optional</code> context and constructs a new collector.</p>
+<p>The full implementation of collectors for all previous types is in <a href="http://github.com/nbardiuk/sequencedemo">this repo</a></p>
+<p>Now we can use it as a last step of stream processing</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb20-1" data-line-number="1">Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>)).<span class="fu">collect</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="co">// Optional[[1, 2]]</span></a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb20-4" data-line-number="4">Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;X&quot;</span>)).<span class="fu">collect</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb20-5" data-line-number="5"><span class="co">// Optional.empty</span></a></code></pre></div>
+<p>Composition of collectors gives us useful flexibility - we can reuse existing collectors from JDK and external libraries.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb21-1" data-line-number="1">Stream.<span class="fu">of</span>(<span class="fu">async</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">async</span>(<span class="st">&quot;2&quot;</span>), <span class="fu">async</span>(<span class="st">&quot;3&quot;</span>)).<span class="fu">collect</span>(<span class="fu">futures</span>(<span class="fu">joining</span>(<span class="st">&quot;:&quot;</span>)))</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="co">// CompletableFuture[&quot;1:2:3&quot;]</span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">Optional&lt;<span class="bu">Map</span>&lt;<span class="bu">Boolean</span>, <span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt;&gt; result =</a>
+<a class="sourceLine" id="cb21-5" data-line-number="5">Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;13&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;12&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;11&quot;</span>))</a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">  .<span class="fu">collect</span>(<span class="fu">optionals</span>(<span class="fu">groupingBy</span>(i -&gt; i % <span class="dv">2</span> == <span class="dv">0</span>)))</a>
+<a class="sourceLine" id="cb21-7" data-line-number="7"><span class="co">// Optional[{false=[11, 13], true=[12]}]</span></a></code></pre></div>
+<p>Also we can compose sequencing collectors. Consider a list of futures that will complete with optional result.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="bu">List</span>&lt;CompletableFuture&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">list = <span class="fu">asList</span>(<span class="fu">async</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>)), <span class="fu">async</span>(<span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>)), <span class="fu">async</span>(<span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>)))</a></code></pre></div>
+<p>Using composition of collectors we can decide how much structure should be extracted from list</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb23-1" data-line-number="1">CompletableFuture&lt;<span class="bu">List</span>&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">futures</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb23-3" data-line-number="3"><span class="co">// CompletableFuture[[Optional[1], Optional[2], Optional[3]]]</span></a>
+<a class="sourceLine" id="cb23-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb23-5" data-line-number="5">CompletableFuture&lt;Optional&lt;<span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb23-6" data-line-number="6">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">futures</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>())))</a>
+<a class="sourceLine" id="cb23-7" data-line-number="7"><span class="co">// CompletableFuture[Optional[[1, 2, 3]]]</span></a></code></pre></div>
+<p>We are not limited here by number of layers that can be composed.</p>
+<p>Lets go crazy with functions</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="bu">List</span>&lt;Function&lt;<span class="bu">String</span>, CompletableFuture&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2">list = <span class="fu">asList</span>(s -&gt; <span class="fu">async</span>(<span class="fu">parse</span>(s)), s -&gt; <span class="fu">async</span>(<span class="fu">read</span>(s)))</a>
+<a class="sourceLine" id="cb24-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb24-4" data-line-number="4">Function&lt;<span class="bu">String</span>, <span class="bu">List</span>&lt;CompletableFuture&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-5" data-line-number="5">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">functions</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb24-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb24-7" data-line-number="7">Function&lt;<span class="bu">String</span>, CompletableFuture&lt;<span class="bu">List</span>&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-8" data-line-number="8">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">functions</span>(<span class="fu">futures</span>(<span class="fu">toList</span>())))</a>
+<a class="sourceLine" id="cb24-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb24-10" data-line-number="10">Function&lt;<span class="bu">String</span>, CompletableFuture&lt;Optional&lt;<span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-11" data-line-number="11">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">functions</span>(<span class="fu">futures</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>()))))</a></code></pre></div>
+<p>each composed sequence pushes <code>List</code> deeper and deeper inside a stack of contexts.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>I hope that today you’ve learned about <code>Applicative</code> and an operation that it enables - <code>sequence</code>.</p>
+<p>Also we have learned that Java type system is not the most powerful but definitely have an API that enables composition.</p>
+<p>You can checkout code examples from <a href="http://github.com/nbardiuk/sequencedemo">this repo</a></p>
+<p><code>Have a nice hack ;)</code></p>
+    </section>
+</article>
+
+        </main>
+        <footer class="h-card">
+          © 2014–2018 <span class="p-name">Nazarii Bardiuk</span>
+          <link class="u-url" href="https://nazarii.bardiu.com" rel="me" />
+          <link class="u-email" href="mailto:nazarii@bardiuk.com" rel="me" />
+          <link href="https://github.com/nbardiuk" rel="me" />
+          <link href="https://twitter.com/nbardiuk" rel="me" />
+          <link href="https://mastodon.social/@Nbardiuk" rel="me" />
+          <link href="https://keybase.io/nbardiuk" rel="me" />
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Nazarii Bardiuk's blog</title>
+        <link>https://nazarii.bardiuk.com</link>
+        <description><![CDATA[A personal blog]]></description>
+        <atom:link href="https://nazarii.bardiuk.com/feed.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Thu, 08 Nov 2018 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>What I've learned during Advent of Code</title>
+    <link>https://nazarii.bardiuk.com/posts/adventofcode2017.html</link>
+    <description><![CDATA[<article class="h-entry">
+    <link class="u-url" href="/posts/adventofcode2017.html">
+    <link rel="author" class="p-author h-card" href="/"/>
+    <section class="header">
+        <h1 class="p-name">What I've learned during Advent of Code</h1>
+        Posted on <time class="dt-published" datetime="2018-11-08T00:00:00Z">November  8, 2018</time>
+    </section>
+    <section class="e-content" >
+        <blockquote>
+<p>Advent of Code is a series of small programming puzzles for a variety of skill sets and skill levels in any programming language you like. People use them as a speed contest, interview prep, company training, university coursework, practice problems, or to challenge each other.</p>
+<p><a href="https://adventofcode.com/about">About Advent of Code</a></p>
+</blockquote>
+<p>Puzzles are fun and Advent of Code has 25 of them! Tasks are connected by common narrative and are published every day in December until Christmas. Schedule keeps me motivated to complete each challenge withing days it was published so I can avoid spoilers. Also on <a href="https://www.reddit.com/r/adventofcode">reddit</a> people discuss their solutions in terms of lines of code, performance or interesting insights they discovered.</p>
+<p>Last year I’ve challenged myself to use only TDD and FP in Scala for <a href="https://github.com/nbardiuk/adventofcode2017">my solutions</a>. I would like to share what I’ve learned from the challenge and how I am going to challenge myself this time.</p>
+<h2 id="tdd">TDD</h2>
+<p>I restricted myself to pure TDD where I would write minimal test first and then only implement enough to fix failing test.</p>
+<h3 id="inside-out">Inside Out</h3>
+<p>My first approach was to decompose puzzle into small problems and start from writing a test for one of them. It is relaxing coding experience - no need to think. All hard work was done during design of the test case, all I need to do is just to transform input into correct output.</p>
+<p>For complicated problems if I made a mistake during decomposition I had to not only fix the code but also I had to rewrite the whole test specification. My tests where using private API of algorithm implementation and if it is wrong everything goes to the bin.</p>
+<p>Some challenges where hard for me to implement using only immutable data structures. So I would cheat with mutable internal state while trying to keep public signature pure. Mutable state requires more complicated test setup comparing to just passing parameters into a function and checking output.</p>
+<h3 id="outside-in">Outside In</h3>
+<p>Next approach was to write test for problem using its public interface. I could use example scenario from problem definition as my first test case or maybe try to think for something simpler.</p>
+<p>For me it is more satisfying way to code. It creates a safety net on the perimeter and allows do be more creative inside.</p>
+<p>In this case tests can survive most of internal changes. The biggest downside I discovered was that some tests had very wide scope. Coding mistakes are harder to debug, it takes longer to find where it went wrong.</p>
+<h3 id="goof-around">Goof around</h3>
+<p>I ended up using mixed approach. If problem wasn’t that hard I would just create a test case from example provided in the problem definition. Or I could start with tests for decomposed problem but as soon as I reach public API I could delete smaller tests.</p>
+<p>My important takeaway was that it is OK to remove some intermediate tests once implementation reaches some end to end functionality.</p>
+<h3 id="refactoring">Refactoring</h3>
+<p>Daily challenge consists of 2 parts, where second part would build on top of first one. Usually first part can be solved using simple suboptimal algorithm but second one requires to optimize it in some way (that I never could guess). It was great opportunity to practice Kent Beck advice on refactoring</p>
+<blockquote>
+<p>When you find you have to add a feature to a program, and the program’s code is not structured in a convenient way to add the feature, first refactor the program to make it easy to add the feature, then add the feature.</p>
+</blockquote>
+<p>And then I had my own third part for the day - looking others solutions on <a href="https://www.reddit.com/r/adventofcode">reddit</a>. Sometimes I would come back with new ideas and good tests should keep me safe without spoiling fun.</p>
+<h2 id="fp-in-scala">FP in Scala</h2>
+<p>I was interested how far I can get with pure functions to solve algorithmic problems.</p>
+<p>Simple problems are so straightforward in FP that I feel almost like cheating. I can restate problem definition by composing pure functions and it produces the right answer.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">def</span> <span class="fu">countUnique</span>(passphrases: Seq[String]): Int = passphrases.<span class="fu">count</span>(unique)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">def</span> <span class="fu">unique</span>(passphrase: String): Boolean = <span class="fu">unique</span>(<span class="fu">words</span>(passphrase))</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">def</span> <span class="fu">words</span>(passphrase: String) = passphrase.<span class="fu">split</span>(<span class="ch">&#39; &#39;</span>)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">def</span> unique[T](ts: Seq[T]): Boolean = ts.<span class="fu">toSet</span>.<span class="fu">size</span> == ts.<span class="fu">size</span> </a></code></pre></div>
+<p>Complex problems require to use another way of thinking. Lazy Streams and recursion were great tools to keep code pure and readable. But for some cases I had to fall back to mutable Arrays and Maps.</p>
+<p>Avoidance of mutability stimulated me to explore functional programming beyond what I thought I want. In one such exploration I’ve learned about <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator">Fixed-point combinator</a> and how to <a href="https://michid.wordpress.com/2009/02/23/function_mem/">memoize</a> recursive functions.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">def</span> fibonachi: Int =&gt; Int =</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  fixMemo[Int, Int] { fibonachi =&gt; n =&gt;</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="kw">if</span> (n == <span class="dv">1</span> || n == <span class="dv">0</span>) <span class="dv">1</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="kw">else</span> <span class="fu">fibonachi</span>(n<span class="dv">-1</span>) + <span class="fu">fibonachi</span>(n<span class="dv">-2</span>)</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">  }(_)</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="kw">private</span> <span class="kw">def</span> fixMemo[I, O](fix: (I =&gt; O) =&gt; I =&gt; O): I =&gt; O = {</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">  <span class="kw">lazy</span> <span class="kw">val</span> io: I =&gt; O = <span class="fu">memo</span>()(<span class="fu">fix</span>(io)(_))</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">  io</a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">}</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="kw">private</span> <span class="kw">def</span> memo[I, O](cache: mutable.<span class="fu">Map</span>[I, O] = mutable.<span class="fu">HashMap</span>[I, O]())(</a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">  iToO: I =&gt; O): I =&gt; O =</a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">  i =&gt; cache.<span class="fu">getOrElseUpdate</span>(i, <span class="fu">iToO</span>(i)</a></code></pre></div>
+<h2 id="this-year">This year</h2>
+<p>This time I am going to use Haskell. I want to make sure I don’t slip into mutable arrays and maps again. Also I am interested to see how lazy programming language will affect my approach to solutions.</p>
+<p>My main goal this year is to actually complete all 25 puzzles. And I expect to learn couple new tricks from fellow puzzle solvers.</p>
+    </section>
+</article>
+]]></description>
+    <pubDate>Thu, 08 Nov 2018 00:00:00 UT</pubDate>
+    <guid>https://nazarii.bardiuk.com/posts/adventofcode2017.html</guid>
+    <dc:creator>Nazarii Bardiuk</dc:creator>
+</item>
+<item>
+    <title>How to Hakyll CircleCI 2.0</title>
+    <link>https://nazarii.bardiuk.com/posts/hakyll-circle.html</link>
+    <description><![CDATA[<article class="h-entry">
+    <link class="u-url" href="/posts/hakyll-circle.html">
+    <link rel="author" class="p-author h-card" href="/"/>
+    <section class="header">
+        <h1 class="p-name">How to Hakyll CircleCI 2.0</h1>
+        Posted on <time class="dt-published" datetime="2018-08-19T14:00:00Z">August 19, 2018</time>
+    </section>
+    <section class="e-content" >
+        <p>This post documents my <a href="https://github.com/nbardiuk/nbardiuk.github.io/blob/a2745429997f4f66bd488e330f694c60c4624194/.circleci/config.yml">CircleCI configuration</a> that builds Hakyll site and publishes it to GitHub pages.</p>
+<p>It is inspired by configurations found on the Internet.</p>
+<ul>
+<li><a href="https://pbrisbin.com/posts/haskell_project_checklist/#circleyml">Example of caching dependencies for stack</a> by Pat Brisbin</li>
+<li><a href="https://github.com/haskellweekly/haskellweekly.github.io/blob/b9e2f0e70aa0f8fe8d2a427fa6c64ec41a2b7965/tools/deploy.hs">Old publishing script of haskellweekly blog</a> by Taylor Fausak</li>
+<li><a href="https://www.stackbuilders.com/news/dr-hakyll-create-a-github-page-with-hakyll-and-circleci">Guide to publish GitHub page with Hakyll and CircleCI 1.0</a> by Juan Pedro Villa</li>
+</ul>
+<h2 id="overview">Overview</h2>
+<!-- vim-markdown-toc GFM -->
+<ul>
+<li><a href="#use-fpcomplete-docker-image">Use FPComplete docker image</a></li>
+<li><a href="#cache-compiled-dependencies">Cache compiled dependencies</a></li>
+<li><a href="#generate-content">Generate content</a></li>
+<li><a href="#push-_site-content-to-github-pages">Push <code>_site</code> content to GitHub pages</a></li>
+<li><a href="#referrers">Referrers</a></li>
+</ul>
+<!-- vim-markdown-toc -->
+<h2 id="use-fpcomplete-docker-image">Use FPComplete docker image</h2>
+<p>Docker is the simplest <a href="https://circleci.com/docs/2.0/executor-types/#overview">executor type</a> on CircleCI.</p>
+<p>This configuration reuses <a href="https://hub.docker.com/r/fpco/stack-build/">FPComplete’s image</a> with stack to avoid custom installation scripts.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">docker:</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="kw">-</span> <span class="fu">image:</span><span class="at"> fpco/stack-build:lts</span></a></code></pre></div>
+<h2 id="cache-compiled-dependencies">Cache compiled dependencies</h2>
+<p>The job is going to recompile all dependencies on every build because it is using clean docker image.</p>
+<p>It takes around 20 minutes to build template Hakyll blog. With <a href="https://circleci.com/docs/2.0/caching/">caching configuration</a> building time drops to less than a minute.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">-</span> <span class="fu">restore_cache:</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">    <span class="fu">name:</span><span class="at"> Restore Cached Dependencies</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="fu">keys:</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">      <span class="co"># find a cache for the same stack.yaml</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">      <span class="kw">-</span> stack-<span class="kw">{</span>{ .Branch <span class="kw">}</span>}-<span class="kw">{</span>{ checksum &quot;stack.yaml&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">      <span class="co"># when missing reuse from the same branch</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">      <span class="kw">-</span> stack-<span class="kw">{</span>{ .Branch <span class="kw">}</span>}-</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">      <span class="co"># when missing reuse the latest cache</span></a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">      <span class="kw">-</span> stack-</a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">    <span class="fu">name:</span><span class="at"> Resolve/Update Dependencies</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">    <span class="fu">command:</span><span class="at"> stack setup</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">    <span class="fu">command:</span><span class="at"> stack build --dependencies-only</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="kw">-</span> <span class="fu">save_cache:</span></a>
+<a class="sourceLine" id="cb2-15" data-line-number="15">    <span class="fu">name:</span><span class="at"> Cache Dependencies</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16">    <span class="fu">key:</span><span class="at"> stack-{{ .Branch }}-{{ checksum &quot;stack.yaml&quot; }}</span></a>
+<a class="sourceLine" id="cb2-17" data-line-number="17">    <span class="fu">paths:</span></a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">      <span class="kw">-</span> ~/.stack</a>
+<a class="sourceLine" id="cb2-19" data-line-number="19">      <span class="kw">-</span> ./.stack-work</a></code></pre></div>
+<h2 id="generate-content">Generate content</h2>
+<p>Builds <code>site</code> application and uses it to generate static content</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">    <span class="fu">name:</span><span class="at"> Build Site App</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">    <span class="fu">command:</span><span class="at"> stack build --pedantic</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">    <span class="fu">name:</span><span class="at"> Generate Static Site</span></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">    <span class="fu">command:</span><span class="at"> stack exec site build</span></a></code></pre></div>
+<h2 id="push-_site-content-to-github-pages">Push <code>_site</code> content to GitHub pages</h2>
+<p>Here <code>master</code> branch is not used for version control but rather as production environment so it makes more sense to keep it clean and wipe previous site content by <code>git push --force</code></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">    <span class="fu">name:</span><span class="at"> Publish GitHub Pages</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">    <span class="fu">working_directory:</span><span class="at"> </span><span class="st">&#39;./_site&#39;</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">    <span class="fu">command:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">      <span class="co"># initalize repo</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">      git init</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">      git config user.name  <span class="st">&#39;CircleCI&#39;</span></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">      git config user.email <span class="st">&#39;job@circleci.com&#39;</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">      <span class="co"># add generated files</span></a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">      git add .</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">      git commit -m <span class="st">&quot;publish $CIRCLE_SHA1 [ci skip]&quot;</span></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">      <span class="co"># push to pages branch</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13">      git remote add origin <span class="st">&quot;$CIRCLE_REPOSITORY_URL&quot;</span></a>
+<a class="sourceLine" id="cb4-14" data-line-number="14">      git push --force origin master</a></code></pre></div>
+<h2 id="referrers">Referrers</h2>
+<ul>
+<li><a href="https://mastodon.social/@Nbardiuk/100577686469743725">nbardiuk@mastodon</a></li>
+<li><a href="https://twitter.com/nbardiuk/status/1031156387185930240">nbardiuk@twitter</a></li>
+<li><a href="https://www.reddit.com/r/haskell/comments/98jtii/how_to_hakyll_circleci_20/">r/haskell</a></li>
+<li><a href="https://haskellweekly.news/issues/121.html">Hasell Weekly 121</a></li>
+</ul>
+    </section>
+</article>
+]]></description>
+    <pubDate>Sun, 19 Aug 2018 14:00:00 UT</pubDate>
+    <guid>https://nazarii.bardiuk.com/posts/hakyll-circle.html</guid>
+    <dc:creator>Nazarii Bardiuk</dc:creator>
+</item>
+<item>
+    <title>Java Sequence</title>
+    <link>https://nazarii.bardiuk.com/posts/java-sequence.html</link>
+    <description><![CDATA[<article class="h-entry">
+    <link class="u-url" href="/posts/java-sequence.html">
+    <link rel="author" class="p-author h-card" href="/"/>
+    <section class="header">
+        <h1 class="p-name">Java Sequence</h1>
+        Posted on <time class="dt-published" datetime="2016-10-16T22:00:00Z">October 16, 2016</time>
+    </section>
+    <section class="e-content" >
+        <p>In this article I would like to explore a <code>sequence</code> function and its implementation in Java.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb1-1" data-line-number="1">Applicative&lt;Traversable&lt;T&gt;&gt; <span class="fu">sequence</span>(Traversable&lt;Applicative&lt;T&gt;&gt; values)</a></code></pre></div>
+<p>You can think about <code>Traversable&lt;T&gt;</code> as an interface that describes a container of values <code>T</code>, something like <code>Iterable&lt;T&gt;</code>. I am going to use <code>T[]</code> and <code>List&lt;T&gt;</code> as an example.</p>
+<p><code>Applicative&lt;T&gt;</code> is sort of context for values <code>T</code>, and it allows to join several such values in contexts together. There is no similar interface in Java but there are several types that have similar behavior.</p>
+<p>So sequence is a function that for a given container of wrapped values produces a wrapped container of values.</p>
+<p>Let me walk you through some common Java types with Applicative semantics and explain sequencing by example.</p>
+<h2 id="optional">Optional</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb2-1" data-line-number="1">Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(Optional&lt;T&gt; <span class="kw">... </span>optionals)</a></code></pre></div>
+<p><code>Optional</code> represents a value that can be absent. Joining together several potentially absent values produces a potentially absent result.</p>
+<p>So a sequence of optional values is going to produce an optional list, and it will be present as long as all of optionals are present.</p>
+<p>Consider a function <code>parse</code> that extracts a number from a string, if it represents a valid integer.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb3-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; <span class="fu">parse</span>(<span class="bu">String</span> number)</a></code></pre></div>
+<p>We can use sequence to group individual parsed numbers into parsed list.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>))</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="co">// Optional[[1,2,3]]</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">sequence</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;X&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>))</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="co">// Optional.empty</span></a></code></pre></div>
+<p>Such semantics is useful when we cannot just ignore empty values and need to invalidate the whole list as soon as one of items is empty.</p>
+<h2 id="completablefuture">CompletableFuture</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb5-1" data-line-number="1">CompletableFuture&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(CompletableFuture&lt;T&gt; <span class="kw">... </span>futures)</a></code></pre></div>
+<p><code>CompletableFuture</code> is a representation of asynchronous computation that will provide a value in the future.</p>
+<p>If we sequence a list of futures it should produce an asynchronous list that is going to be available later, after completion of all futures.</p>
+<p>It also has all or nothing semantics - result will be available only after all of futures are completed.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb6-1" data-line-number="1">CompletableFuture&lt;T&gt; <span class="fu">async</span>(T i) <span class="co">// produces later</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">CompletableFuture&lt;T&gt; <span class="fu">failed</span>()   <span class="co">// finishes exceptionally</span></a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">async</span>(<span class="dv">1</span>), <span class="fu">async</span>(<span class="dv">2</span>), <span class="fu">async</span>(<span class="dv">3</span>))</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="co">// CompletableFuture[[1,2,3]]</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="fu">sequence</span>(<span class="fu">async</span>(<span class="dv">1</span>), <span class="fu">failed</span>(), <span class="fu">async</span>(<span class="dv">3</span>))</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="co">// CompletableFuture.failed</span></a></code></pre></div>
+<p>It allows to build continuations without blocking on individual results</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">async</span>(<span class="dv">1</span>), <span class="fu">async</span>(<span class="dv">2</span>), <span class="fu">async</span>(<span class="dv">3</span>)).<span class="fu">thenApply</span>(<span class="kw">this</span>::sum)</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="co">// CompletableFuture[[6]]</span></a></code></pre></div>
+<h2 id="list">List</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="bu">List</span>&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(<span class="bu">List</span>&lt;T&gt; <span class="kw">... </span>lists)</a></code></pre></div>
+<p>Previously I’ve used <code>List</code> as an example for container. But it can also be treated as an Applicative.</p>
+<p>List represents a choice between zero to many possible values. Joining several choices together leads to multiplication of possibilities.</p>
+<p>In this sense sequence of lists produces their Cartesian product.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">asList</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="fu">asList</span>(<span class="dv">10</span>, <span class="dv">20</span>), <span class="fu">asList</span>(<span class="dv">100</span>))</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co">// [[1, 10, 100], [1, 20, 100], [2, 10, 100], [2, 20, 100]]</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="fu">sequence</span>(<span class="fu">asList</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="fu">emptyList</span>(), <span class="fu">asList</span>(<span class="dv">10</span>, <span class="dv">20</span>))</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="co">// []</span></a></code></pre></div>
+<p>Usually Cartesian product is used to generate combinations of values</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="fu">sequence</span>(<span class="fu">asList</span>(<span class="st">&quot;J&quot;</span>, <span class="st">&quot;Q&quot;</span>, <span class="st">&quot;K&quot;</span>, <span class="st">&quot;A&quot;</span>), </a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">         <span class="fu">asList</span>(<span class="st">&quot;Clubs&quot;</span>, <span class="st">&quot;Diamonds&quot;</span>, <span class="st">&quot;Hearts&quot;</span>, <span class="st">&quot;Spades&quot;</span>))</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"><span class="co">// [[J, Clubs], [J, Diamonds], [J, Hearts], [J, Spades],</span></a>
+<a class="sourceLine" id="cb11-4" data-line-number="4"><span class="co">// [Q, Clubs], [Q, Diamonds], [Q, Hearts], [Q, Spades],</span></a>
+<a class="sourceLine" id="cb11-5" data-line-number="5"><span class="co">// [K, Clubs], [K, Diamonds], [K, Hearts], [K, Spades],</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6"><span class="co">// [A, Clubs], [A, Diamonds], [A, Hearts], [A, Spades]]</span></a></code></pre></div>
+<h2 id="function">Function</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb12-1" data-line-number="1">Function&lt;A, <span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(Function&lt;A, T&gt; <span class="kw">... </span>functions)</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">BiFunction&lt;A, B, <span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(BiFunction&lt;A, B, T&gt; <span class="kw">... </span>functions)</a></code></pre></div>
+<p><code>Function</code> can be also viewed as a context for value, a value that will be computed from some key.</p>
+<p>Sequence of functions is a function that for a given input computes a list of values.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="fu">sequence</span>(Person::name, Person::surname).<span class="fu">apply</span>(<span class="fu">person</span>(<span class="st">&quot;John&quot;</span>, <span class="st">&quot;Doe&quot;</span>))  </a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="co">// [John, Doe]</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="fu">sequence</span>(<span class="bu">Integer</span>::sum, <span class="bu">Integer</span>::max, <span class="bu">Integer</span>::min).<span class="fu">apply</span>(<span class="dv">100</span>, <span class="dv">200</span>)</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="co">// [300, 200, 100]</span></a></code></pre></div>
+<h2 id="implementation">Implementation</h2>
+<p>The most common approach to implement <code>sequence</code> is to fold over items. Java’s analogy would be a reduction of <code>Stream</code></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb14-1" data-line-number="1">&lt;T&gt; Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(<span class="bu">List</span>&lt;Optional&lt;T&gt;&gt; optionals) {</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">  <span class="kw">return</span> optionals.<span class="fu">stream</span>().<span class="fu">reduce</span>(</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="co">// Initial value Optional&lt;List&lt;T&gt;&gt;</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">    Optional.<span class="fu">of</span>(<span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;()),</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6"><span class="co">// Accumulator BiFunction&lt;Optional&lt;List&lt;T&gt;&gt;, Optional&lt;T&gt;, Optional&lt;List&lt;T&gt;&gt;&gt;</span></a>
+<a class="sourceLine" id="cb14-7" data-line-number="7">    (result, optional) -&gt; result.<span class="fu">flatMap</span>(list -&gt; optional.<span class="fu">map</span>(item -&gt; {</a>
+<a class="sourceLine" id="cb14-8" data-line-number="8">      list.<span class="fu">add</span>(item);</a>
+<a class="sourceLine" id="cb14-9" data-line-number="9">      <span class="kw">return</span> list;</a>
+<a class="sourceLine" id="cb14-10" data-line-number="10">    })),</a>
+<a class="sourceLine" id="cb14-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb14-12" data-line-number="12"><span class="co">// Combiner BinaryOperator&lt;Optional&lt;List&lt;T&gt;&gt;  </span></a>
+<a class="sourceLine" id="cb14-13" data-line-number="13">    (result, chunk) -&gt; result.<span class="fu">flatMap</span>(left -&gt; chunk.<span class="fu">map</span>(right -&gt; {</a>
+<a class="sourceLine" id="cb14-14" data-line-number="14">      <span class="bu">List</span>&lt;T&gt; r = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(left);</a>
+<a class="sourceLine" id="cb14-15" data-line-number="15">      r.<span class="fu">addAll</span>(right);</a>
+<a class="sourceLine" id="cb14-16" data-line-number="16">      <span class="kw">return</span> r;</a>
+<a class="sourceLine" id="cb14-17" data-line-number="17">    })));</a>
+<a class="sourceLine" id="cb14-18" data-line-number="18">}</a></code></pre></div>
+<p><code>Identity</code> value in reduction is an option of empty list (which is going to be a result if stream is empty). <code>Accumulator</code> joins together previously accumulated optional list and current optional value. Finally <code>combiner</code> takes two optional lists that have been produced in parallel and joins them together.</p>
+<p>Note that both accumulator and combiner will produce an empty <code>Optional</code> if at least one of arguments is empty.</p>
+<p>Accumulator and combiner has the same structure - if both optionals are present then function is applied to their arguments. Lets exploit this pattern and make some refactoring</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb15-1" data-line-number="1">&lt;T&gt; Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(<span class="bu">List</span>&lt;Optional&lt;T&gt;&gt; optionals) {</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">  <span class="kw">return</span> optionals.<span class="fu">stream</span>().<span class="fu">reduce</span>(</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">    <span class="fu">pure</span>(<span class="fu">emptyList</span>()),</a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">    <span class="fu">lift</span>(<span class="fu">add</span>()),</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">    <span class="fu">lift</span>(<span class="fu">addAll</span>()));</a>
+<a class="sourceLine" id="cb15-6" data-line-number="6">}</a>
+<a class="sourceLine" id="cb15-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb15-8" data-line-number="8">&lt;A, B, C&gt; BiFunction&lt;Optional&lt;A&gt;, Optional&lt;B&gt;, Optional&lt;C&gt;&gt;</a>
+<a class="sourceLine" id="cb15-9" data-line-number="9"><span class="fu">lift</span>(BiFunction&lt;A, B, C&gt; f) {</a>
+<a class="sourceLine" id="cb15-10" data-line-number="10">  <span class="kw">return</span> (oa, ob) -&gt; oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; f.<span class="fu">apply</span>(a, b)));</a>
+<a class="sourceLine" id="cb15-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb15-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb15-13" data-line-number="13">&lt;A&gt; BinaryOperator&lt;Optional&lt;A&gt;&gt; <span class="fu">lift</span>(BinaryOperator&lt;A&gt; f) {</a>
+<a class="sourceLine" id="cb15-14" data-line-number="14">  <span class="kw">return</span> (oa, ob) -&gt; oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; f.<span class="fu">apply</span>(a, b)));</a>
+<a class="sourceLine" id="cb15-15" data-line-number="15">}</a>
+<a class="sourceLine" id="cb15-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb15-17" data-line-number="17">&lt;T&gt; Optional&lt;T&gt; <span class="fu">pure</span>(T value) {</a>
+<a class="sourceLine" id="cb15-18" data-line-number="18">  <span class="kw">return</span> Optional.<span class="fu">of</span>(value);</a>
+<a class="sourceLine" id="cb15-19" data-line-number="19">}</a>
+<a class="sourceLine" id="cb15-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb15-21" data-line-number="21">&lt;T&gt; BiFunction&lt;<span class="bu">List</span>&lt;T&gt;, T, <span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">add</span>() {</a>
+<a class="sourceLine" id="cb15-22" data-line-number="22">  <span class="kw">return</span> (ts, t) -&gt; {</a>
+<a class="sourceLine" id="cb15-23" data-line-number="23">    <span class="bu">ArrayList</span>&lt;T&gt; result = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(ts);</a>
+<a class="sourceLine" id="cb15-24" data-line-number="24">    result.<span class="fu">add</span>(t);</a>
+<a class="sourceLine" id="cb15-25" data-line-number="25">    <span class="kw">return</span> result;</a>
+<a class="sourceLine" id="cb15-26" data-line-number="26">  };</a>
+<a class="sourceLine" id="cb15-27" data-line-number="27">}</a>
+<a class="sourceLine" id="cb15-28" data-line-number="28"></a>
+<a class="sourceLine" id="cb15-29" data-line-number="29">&lt;T&gt; BinaryOperator&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">addAll</span>() {</a>
+<a class="sourceLine" id="cb15-30" data-line-number="30">  <span class="kw">return</span> (ts, ts2) -&gt; {</a>
+<a class="sourceLine" id="cb15-31" data-line-number="31">    <span class="bu">ArrayList</span>&lt;T&gt; result = <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(ts);</a>
+<a class="sourceLine" id="cb15-32" data-line-number="32">    result.<span class="fu">addAll</span>(ts2);</a>
+<a class="sourceLine" id="cb15-33" data-line-number="33">    <span class="kw">return</span> result;</a>
+<a class="sourceLine" id="cb15-34" data-line-number="34">  };</a>
+<a class="sourceLine" id="cb15-35" data-line-number="35">}</a></code></pre></div>
+<p>Note 2 functions:</p>
+<ul>
+<li><code>lift</code> transforms a function to work on <code>Optional</code> arguments</li>
+<li><code>pure</code> wraps a value into <code>Optional</code></li>
+</ul>
+<p>These functions are part of <code>Applicative</code>, an interface which satisfy all previous example types. It means that for all of them reduction will look the same, as soon as we manage to provide <code>lift</code> and <code>pure</code> implementations.</p>
+<p>Let’s do it for <code>CompletableFuture</code></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb16-1" data-line-number="1">&lt;T&gt; CompletableFuture&lt;<span class="bu">List</span>&lt;T&gt;&gt; </a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="fu">sequence</span>(<span class="bu">List</span>&lt;CompletableFuture&lt;T&gt;&gt; futures) {</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">  <span class="kw">return</span> futures.<span class="fu">stream</span>().<span class="fu">reduce</span>(</a>
+<a class="sourceLine" id="cb16-4" data-line-number="4">    <span class="fu">pure</span>(<span class="fu">emptyList</span>()),</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">    <span class="fu">lift</span>(<span class="fu">add</span>()),</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">    <span class="fu">lift</span>(<span class="fu">addAll</span>()));</a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">}</a>
+<a class="sourceLine" id="cb16-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb16-9" data-line-number="9">&lt;T&gt; CompletableFuture&lt;T&gt; <span class="fu">pure</span>(T t) {</a>
+<a class="sourceLine" id="cb16-10" data-line-number="10">  <span class="kw">return</span> <span class="fu">completedFuture</span>(t);</a>
+<a class="sourceLine" id="cb16-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb16-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb16-13" data-line-number="13">&lt;A, B, C&gt; BiFunction&lt;CompletableFuture&lt;A&gt;, CompletableFuture&lt;B&gt;, CompletableFuture&lt;C&gt;&gt;</a>
+<a class="sourceLine" id="cb16-14" data-line-number="14"><span class="fu">lift</span>(BiFunction&lt;A, B, C&gt; f) {</a>
+<a class="sourceLine" id="cb16-15" data-line-number="15">  <span class="kw">return</span> (fa, fb) -&gt; fa.<span class="fu">thenCombine</span>(fb, f);</a>
+<a class="sourceLine" id="cb16-16" data-line-number="16">}</a>
+<a class="sourceLine" id="cb16-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb16-18" data-line-number="18">&lt;A&gt; BinaryOperator&lt;CompletableFuture&lt;A&gt;&gt; <span class="fu">lift</span>(BinaryOperator&lt;A&gt; f) {</a>
+<a class="sourceLine" id="cb16-19" data-line-number="19">  <span class="kw">return</span> (fa, fb) -&gt; fa.<span class="fu">thenCombine</span>(fb, f);</a>
+<a class="sourceLine" id="cb16-20" data-line-number="20">}</a></code></pre></div>
+<p>Bodies of <code>sequence</code> implementations are identical, that is a place for generalization. Unfortunately Java’s type system is not powerful enough to represent generic type with generic parameter, i.e. <a href="http://adriaanm.github.io/files/higher.pdf">Generics of higher kind</a>.</p>
+<p>So we cannot extract type safe notion of <code>Applicative</code> for <code>sequence</code> function</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb17-1" data-line-number="1">&lt;T, A <span class="kw">extends</span> Applicative&gt; A&lt;<span class="bu">List</span>&lt;T&gt;&gt; <span class="fu">sequence</span>(A&lt;T&gt; <span class="kw">... </span>applicatives)</a></code></pre></div>
+<h2 id="composition">Composition</h2>
+<p>Anyway we have a space for reuse. In my daily work Streams become a tool for composition of operations over some collection of items. A situation when I need to implement similar reduction are not unique.</p>
+<p>I have two options:</p>
+<ul>
+<li>collect result to list and use sequence function over it</li>
+<li>reimplement the same reduction as above</li>
+</ul>
+<p>Collections of list to stream usually is a little bit premature. So we need to extract reduction. The way to reuse reduction functionality in <code>Stream</code> API is to create a <code>Collector</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb18-1" data-line-number="1">&lt;T&gt; Collector&lt;Optional&lt;T&gt;, ?, Optional&lt;<span class="bu">List</span>&lt;T&gt;&gt;&gt; <span class="fu">optionals</span>()</a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">Optional&lt;<span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt; result =</a>
+<a class="sourceLine" id="cb18-4" data-line-number="4">  Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>)).<span class="fu">collect</span>(<span class="fu">optionals</span>())</a>
+<a class="sourceLine" id="cb18-5" data-line-number="5"><span class="co">//Optional[1, 2, 3]</span></a></code></pre></div>
+<p>We can go one step further and generalize resulting container, by using composition of collectors.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb19-1" data-line-number="1">&lt;T, A, R&gt; Collector&lt;Optional&lt;T&gt;, ?, Optional&lt;R&gt;&gt;</a>
+<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="fu">optionals</span>(Collector&lt;T, A, R&gt; downstream) {</a>
+<a class="sourceLine" id="cb19-3" data-line-number="3">  <span class="kw">return</span> <span class="fu">collector</span>(</a>
+<a class="sourceLine" id="cb19-4" data-line-number="4">    <span class="fu">lift</span>(downstream.<span class="fu">supplier</span>()),</a>
+<a class="sourceLine" id="cb19-5" data-line-number="5">    <span class="fu">lift</span>(<span class="fu">accumulator</span>(downstream)),</a>
+<a class="sourceLine" id="cb19-6" data-line-number="6">    <span class="fu">lift</span>(<span class="fu">combiner</span>(downstream)),</a>
+<a class="sourceLine" id="cb19-7" data-line-number="7">    <span class="fu">lift</span>(downstream.<span class="fu">finisher</span>()));</a>
+<a class="sourceLine" id="cb19-8" data-line-number="8">}</a></code></pre></div>
+<p>It takes a collector of values and lifts it into <code>Optional</code> context such that it collects optionals with semantics of <code>sequence</code> operation.</p>
+<p>Its implementation is a little bit more involved but has the same approach - it lifts each part of downstream collector into <code>Optional</code> context and constructs a new collector.</p>
+<p>The full implementation of collectors for all previous types is in <a href="http://github.com/nbardiuk/sequencedemo">this repo</a></p>
+<p>Now we can use it as a last step of stream processing</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb20-1" data-line-number="1">Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>)).<span class="fu">collect</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="co">// Optional[[1, 2]]</span></a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb20-4" data-line-number="4">Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;X&quot;</span>)).<span class="fu">collect</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb20-5" data-line-number="5"><span class="co">// Optional.empty</span></a></code></pre></div>
+<p>Composition of collectors gives us useful flexibility - we can reuse existing collectors from JDK and external libraries.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb21-1" data-line-number="1">Stream.<span class="fu">of</span>(<span class="fu">async</span>(<span class="st">&quot;1&quot;</span>), <span class="fu">async</span>(<span class="st">&quot;2&quot;</span>), <span class="fu">async</span>(<span class="st">&quot;3&quot;</span>)).<span class="fu">collect</span>(<span class="fu">futures</span>(<span class="fu">joining</span>(<span class="st">&quot;:&quot;</span>)))</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="co">// CompletableFuture[&quot;1:2:3&quot;]</span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">Optional&lt;<span class="bu">Map</span>&lt;<span class="bu">Boolean</span>, <span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt;&gt; result =</a>
+<a class="sourceLine" id="cb21-5" data-line-number="5">Stream.<span class="fu">of</span>(<span class="fu">parse</span>(<span class="st">&quot;13&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;12&quot;</span>), <span class="fu">parse</span>(<span class="st">&quot;11&quot;</span>))</a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">  .<span class="fu">collect</span>(<span class="fu">optionals</span>(<span class="fu">groupingBy</span>(i -&gt; i % <span class="dv">2</span> == <span class="dv">0</span>)))</a>
+<a class="sourceLine" id="cb21-7" data-line-number="7"><span class="co">// Optional[{false=[11, 13], true=[12]}]</span></a></code></pre></div>
+<p>Also we can compose sequencing collectors. Consider a list of futures that will complete with optional result.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="bu">List</span>&lt;CompletableFuture&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">list = <span class="fu">asList</span>(<span class="fu">async</span>(<span class="fu">parse</span>(<span class="st">&quot;1&quot;</span>)), <span class="fu">async</span>(<span class="fu">parse</span>(<span class="st">&quot;2&quot;</span>)), <span class="fu">async</span>(<span class="fu">parse</span>(<span class="st">&quot;3&quot;</span>)))</a></code></pre></div>
+<p>Using composition of collectors we can decide how much structure should be extracted from list</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb23-1" data-line-number="1">CompletableFuture&lt;<span class="bu">List</span>&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">futures</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb23-3" data-line-number="3"><span class="co">// CompletableFuture[[Optional[1], Optional[2], Optional[3]]]</span></a>
+<a class="sourceLine" id="cb23-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb23-5" data-line-number="5">CompletableFuture&lt;Optional&lt;<span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb23-6" data-line-number="6">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">futures</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>())))</a>
+<a class="sourceLine" id="cb23-7" data-line-number="7"><span class="co">// CompletableFuture[Optional[[1, 2, 3]]]</span></a></code></pre></div>
+<p>We are not limited here by number of layers that can be composed.</p>
+<p>Lets go crazy with functions</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="bu">List</span>&lt;Function&lt;<span class="bu">String</span>, CompletableFuture&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2">list = <span class="fu">asList</span>(s -&gt; <span class="fu">async</span>(<span class="fu">parse</span>(s)), s -&gt; <span class="fu">async</span>(<span class="fu">read</span>(s)))</a>
+<a class="sourceLine" id="cb24-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb24-4" data-line-number="4">Function&lt;<span class="bu">String</span>, <span class="bu">List</span>&lt;CompletableFuture&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-5" data-line-number="5">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">functions</span>(<span class="fu">toList</span>()))</a>
+<a class="sourceLine" id="cb24-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb24-7" data-line-number="7">Function&lt;<span class="bu">String</span>, CompletableFuture&lt;<span class="bu">List</span>&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-8" data-line-number="8">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">functions</span>(<span class="fu">futures</span>(<span class="fu">toList</span>())))</a>
+<a class="sourceLine" id="cb24-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb24-10" data-line-number="10">Function&lt;<span class="bu">String</span>, CompletableFuture&lt;Optional&lt;<span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt;&gt;&gt;&gt;</a>
+<a class="sourceLine" id="cb24-11" data-line-number="11">result = list.<span class="fu">stream</span>().<span class="fu">collect</span>(<span class="fu">functions</span>(<span class="fu">futures</span>(<span class="fu">optionals</span>(<span class="fu">toList</span>()))))</a></code></pre></div>
+<p>each composed sequence pushes <code>List</code> deeper and deeper inside a stack of contexts.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>I hope that today you’ve learned about <code>Applicative</code> and an operation that it enables - <code>sequence</code>.</p>
+<p>Also we have learned that Java type system is not the most powerful but definitely have an API that enables composition.</p>
+<p>You can checkout code examples from <a href="http://github.com/nbardiuk/sequencedemo">this repo</a></p>
+<p><code>Have a nice hack ;)</code></p>
+    </section>
+</article>
+]]></description>
+    <pubDate>Sun, 16 Oct 2016 22:00:00 UT</pubDate>
+    <guid>https://nazarii.bardiuk.com/posts/java-sequence.html</guid>
+    <dc:creator>Nazarii Bardiuk</dc:creator>
+</item>
+<item>
+    <title>Monads with Java 8</title>
+    <link>https://nazarii.bardiuk.com/posts/java-monad.html</link>
+    <description><![CDATA[<article class="h-entry">
+    <link class="u-url" href="/posts/java-monad.html">
+    <link rel="author" class="p-author h-card" href="/"/>
+    <section class="header">
+        <h1 class="p-name">Monads with Java 8</h1>
+        Posted on <time class="dt-published" datetime="2015-11-08T22:00:00Z">November  8, 2015</time>
+    </section>
+    <section class="e-content" >
+        <p>It is a paraphrase to Java of <a href="http://blog.sigfpe.com/2007/04/trivial-monad.html">“The Trivial Monad”</a> by Dan Piponi with applications for Java developers.</p>
+<h2 id="an-intuition">An intuition</h2>
+<p>Monad is like a …</p>
+<p>There is no good analogy to explain what is monad to new person (<a href="https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/">monad tutorial fallacy</a>). The best way to get it right is just to do some coding. So lets explore simple design pattern - one-way wrapper. Such wrapper can wrap value but can’t unwrap it back.</p>
+<p>In Java it can look like simple immutable object</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="at">@ToString</span> <span class="at">@EqualsAndHashCode</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  <span class="kw">private</span> <span class="dt">final</span> T value;</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="kw">private</span> <span class="fu">Wrap</span>(T value) { <span class="kw">this</span>.<span class="fu">value</span> = value; }</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">  <span class="kw">public</span> <span class="dt">static</span> &lt;T&gt; Wrap&lt;T&gt; <span class="fu">of</span>(T value) {</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">    <span class="kw">return</span> <span class="kw">new</span> Wrap&lt;&gt;(value);</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">  }</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">}</a></code></pre></div>
+<p>This class is just going to wrap a value using factory method <code>of</code>. There are no getters and setters, but present <code>toString</code>, <code>equals</code> and <code>hashCode</code> for convenience (see <a href="https://projectlombok.org/">lombok</a>).</p>
+<p>To do something with value we need a method that will apply mapping function and then return new wrapped value. It is important to keep value wrapped so it never escapes.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="co">// ...</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">  <span class="kw">public</span> &lt;R&gt; Wrap&lt;R&gt; <span class="fu">map</span>(Function&lt;T, R&gt; mapper) {</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="kw">return</span> Wrap.<span class="fu">of</span>(mapper.<span class="fu">apply</span>(value));</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">}</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb3-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; a = Wrap.<span class="fu">of</span>(<span class="dv">1</span>);           <span class="co">// Wrap(value=1)</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">Wrap&lt;<span class="bu">Integer</span>&gt; b = a.<span class="fu">map</span>(i -&gt; i + <span class="dv">9</span>);    <span class="co">// Wrap(value=10)</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">Wrap&lt;<span class="bu">Integer</span>&gt; c = b.<span class="fu">map</span>(i -&gt; i * <span class="dv">11</span>);   <span class="co">// Wrap(value=110)</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">a.<span class="fu">map</span>(i -&gt; i * <span class="dv">10</span>).<span class="fu">map</span>(i -&gt; i + <span class="dv">11</span>);    <span class="co">// Wrap(value=21)</span></a></code></pre></div>
+<p>OK, now we can do something with this, but usually things are more interesting. After starting using wrapped values here and there we eventually create method like this</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb4-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; <span class="fu">inc</span>(<span class="bu">Integer</span> x) {</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  <span class="kw">return</span> Wrap.<span class="fu">of</span>(x + <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">}</a></code></pre></div>
+<p><code>inc</code> gets a number and then returns a wrapped result. It is very useful business logic and we want to apply it even to wrapped values.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb5-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; a = Wrap.<span class="fu">of</span>(<span class="dv">1</span>);     <span class="co">// Wrap(value=1)</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">a.<span class="fu">map</span>(<span class="kw">this</span>::inc);                 <span class="co">// Wrap(value=Wrap(value=2))</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">a.<span class="fu">map</span>(<span class="kw">this</span>::inc).<span class="fu">map</span>(<span class="kw">this</span>::inc);  <span class="co">// !!! COMPILATION ERROR</span></a></code></pre></div>
+<p>First problem we face is that it wraps already wrapped result. And then we cannot continue applying it - <code>inc</code> accepts only <code>Integer</code> but not <code>Wrap&lt;Integer&gt;</code> instance.</p>
+<p>There should be some way to <code>inc</code> value and not wrap it again.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">  <span class="co">// ...</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">  <span class="kw">public</span> &lt;R&gt; Wrap&lt;R&gt; <span class="fu">flatMap</span>(Function&lt;T, Wrap&lt;R&gt;&gt; mapper) {</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">    <span class="kw">return</span> mapper.<span class="fu">apply</span>(value);</a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb6-6" data-line-number="6">}</a></code></pre></div>
+<p><code>flatMap</code> is still safe - it doesn’t give user a plain value but provides it to the mapper.</p>
+<p>Now we can apply <code>inc</code> several times in chains</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb7-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; a = Wrap.<span class="fu">of</span>(<span class="dv">1</span>);              <span class="co">// Wrap(value=1)</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">a.<span class="fu">flatMap</span>(<span class="kw">this</span>::inc);                      <span class="co">// Wrap(value=2)</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">a.<span class="fu">flatMap</span>(<span class="kw">this</span>::inc).<span class="fu">flatMap</span>(<span class="kw">this</span>::inc);   <span class="co">// Wrap(value=3)</span></a></code></pre></div>
+<p>Actually <code>flatMap</code> is more generic then <code>map</code> and we can implement <code>map</code> using it</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">  <span class="co">// ...</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">  &lt;R&gt; Wrap&lt;R&gt; <span class="fu">map</span>(Function&lt;T, R&gt; mapper) {</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">    <span class="kw">return</span> <span class="fu">flatMap</span>(mapper.<span class="fu">andThen</span>(Wrap::of));</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">}</a></code></pre></div>
+<p><code>andThen</code> composes function with another, passing result of first as argument to the second <a href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Function.html#andThen-java.util.function.Function-">Function#andThen</a></p>
+<p>Now we have all tools to work with our wrapper type. <code>of</code> wraps a value and <code>flatMap</code> gives a way to modify it without need to unwrap anything. And we can chain multiple transformations without worry how to unwrap layers of results.</p>
+<p>Basically, this is a monad - type that provides APIs to enclose some value and modify it without exiting enclosed context</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">interface</span> Monad&lt;T&gt; {</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">  Monad&lt;T&gt; <span class="fu">of</span>(T value);</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">  &lt;R&gt; Monad&lt;R&gt; <span class="fu">flatMap</span>(Function&lt;T, Monad&lt;R&gt;&gt; mapper);</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">}</a></code></pre></div>
+<h2 id="real-world-problems">Real world problems</h2>
+<p>In Java there are several monadic types and even more with growing number of libraries. I will use <a href="http://docs.oracle.com/javase/8/docs/api/java/util/Optional.html">Optional</a> next, but these examples can be similarly applied to others.</p>
+<h3 id="operations-on-optionals">Operations on Optionals</h3>
+<p>Assume we need to add two optional values. And we don’t know how to unwrap them, I mean don’t know what to do with empty values. All what we want is only add values together and leave that decision for later</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb10-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; a = ...</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; b = ...</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="kw">return</span> <span class="fu">add</span>(a, b);</a></code></pre></div>
+<p>Such function <code>add</code> should return new Optional with the result of adding values</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb11-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; <span class="fu">add</span>(Optional&lt;<span class="bu">Integer</span>&gt; oa, Optional&lt;<span class="bu">Integer</span>&gt; ob) {</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">  <span class="kw">return</span> oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; a + b));</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">}</a></code></pre></div>
+<p>Lambda inside <code>flatMap</code> has access to value of <code>oa</code> and uses it to increment value of <code>ob</code> similarly to previous <code>inc</code> function.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb12-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; a = Optional.<span class="fu">of</span>(<span class="dv">13</span>);</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; b = Optional.<span class="fu">of</span>(<span class="dv">42</span>);</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="fu">add</span>(a, b);                 <span class="co">// Optional[55]</span></a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="fu">add</span>(a, Optional.<span class="fu">empty</span>());  <span class="co">// Optional.empty</span></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"><span class="fu">add</span>(Optional.<span class="fu">empty</span>(), b);  <span class="co">// Optional.empty</span></a></code></pre></div>
+<p>What if we need to perform other operations? Lets create another method that additionally accepts an operation</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb13-1" data-line-number="1">&lt;A, B, R&gt; Optional&lt;R&gt; <span class="fu">compute</span>(BiFunction&lt;A, B, R&gt; operation, Optional&lt;A&gt; oa, Optional&lt;B&gt; ob) {</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">  <span class="kw">return</span> oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; operation.<span class="fu">apply</span>(a, b)));</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">}</a></code></pre></div>
+<p>It is little bit to verbose but basically <code>compute</code> applies <code>operation</code> on values from optionals and returns optional result</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb14-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; a = Optional.<span class="fu">of</span>(<span class="dv">13</span>);</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; b = Optional.<span class="fu">of</span>(<span class="dv">42</span>);</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3">BiFunction&lt;<span class="bu">Integer</span>, <span class="bu">Integer</span>, <span class="bu">Integer</span>&gt; plus = (x, y) -&gt; x + y;</a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">BiFunction&lt;<span class="bu">Integer</span>, <span class="bu">Integer</span>, <span class="bu">Integer</span>&gt; times = (x, y) -&gt; x * y;</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"><span class="fu">compute</span>(plus, a, b);    <span class="co">// Optional[55]</span></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6"><span class="fu">compute</span>(times, a, b);   <span class="co">// Optional[546]</span></a></code></pre></div>
+<h3 id="streams-of-optionals">Streams of Optionals</h3>
+<p>So far so good. But with Java 8 we usually deal with a lot of streams. It is a common case when during pipeline we end up with stream of optional values. Now as we know how to perform operations on optionals lets find a product of all optional values in stream</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb15-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; one = Optional.<span class="fu">of</span>(<span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">Stream&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt; stream = Stream.<span class="fu">of</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>).<span class="fu">map</span>(Optional::of);</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">stream.<span class="fu">reduce</span>(one, (acc, elem) -&gt; <span class="fu">compute</span>(times, acc, elem));  <span class="co">// Optional[24]</span></a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">stream = Stream.<span class="fu">of</span>(Optional.<span class="fu">of</span>(<span class="dv">10</span>), Optional.<span class="fu">empty</span>());</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">stream.<span class="fu">reduce</span>(one, (acc, elem) -&gt; <span class="fu">compute</span>(times, acc, elem));  <span class="co">// Optional.empty</span></a></code></pre></div>
+<p>We provide initial value <code>one</code> and then compute product of accumulator and each value in stream.</p>
+<p>APIs are not always so friendly. Lets look at the reduce but without initial value</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb16-1" data-line-number="1">stream.<span class="fu">reduce</span>((acc, elem) -&gt; <span class="fu">compute</span>(times, acc, elem));  <span class="co">// Optional[Optional[24]]</span></a></code></pre></div>
+<p>It wraps result into optional, because stream can be empty and we didn’t provide any initial value.</p>
+<h3 id="flattening">Flattening</h3>
+<p>How can we deal with optional of optional without unwrapping it? We can flatten it with <code>flatMap</code></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb17-1" data-line-number="1">Optional&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt; ooa = Optional.<span class="fu">of</span>(Optional.<span class="fu">of</span>(<span class="dv">24</span>));</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; oa = ooa.<span class="fu">flatMap</span>(o -&gt; o); <span class="co">// Optional[24]</span></a></code></pre></div>
+<p>Function <code>o -&gt; o</code> is called identity and actually it is so useful that you can find it in standard library <a href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Function.html#identity--">Function#identity</a></p>
+<h2 id="wrap-up">Wrap-up</h2>
+<p>Sometimes it is better to operate on monads and leave decision how to unwrap them for later. Consider this next time when you will try to get value from Optional, CompletableFuture or some other monadic type. I hope you’ve learned here one or two methods how to simplify your design using operations on Monads.</p>
+<p>Code is available on <a href="https://gist.github.com/nbardiuk/91793d997bed62f36175">Gist</a> - feel free to play with it.</p>
+<p><code>Have a nice hack ;)</code></p>
+<h2 id="referrers">Referrers</h2>
+<ul>
+<li><a href="https://medium.com/@afcastano/monads-for-java-developers-part-1-the-optional-monad-aa6e797b8a6e">Monads for Java developers: Part 1 — The Optional monad</a></li>
+<li><a href="https://medium.com/@afcastano/monads-for-java-developers-part-2-the-result-and-log-monads-a9ecc0f231bb">Monads for Java developers: Part 2 — Two monads more</a></li>
+</ul>
+    </section>
+</article>
+]]></description>
+    <pubDate>Sun, 08 Nov 2015 22:00:00 UT</pubDate>
+    <guid>https://nazarii.bardiuk.com/posts/java-monad.html</guid>
+    <dc:creator>Nazarii Bardiuk</dc:creator>
+</item>
+<item>
+    <title>Game Of Live in Clojure with Quil</title>
+    <link>https://nazarii.bardiuk.com/posts/game-of-live-clojure.html</link>
+    <description><![CDATA[<article class="h-entry">
+    <link class="u-url" href="/posts/game-of-live-clojure.html">
+    <link rel="author" class="p-author h-card" href="/"/>
+    <section class="header">
+        <h1 class="p-name">Game Of Live in Clojure with Quil</h1>
+        Posted on <time class="dt-published" datetime="2014-11-29T06:54:00Z">November 29, 2014</time>
+    </section>
+    <section class="e-content" >
+        <p>This is my attempt to implement <a href="http://www.conwaylife.com/wiki/Conway%27s_Game_of_Life">Conway’s Game of Life</a> in Clojure using Quil library.</p>
+<h2 id="game-of-life">Game of Life</h2>
+<p><img src="/images/112P51.gif" style="float: right; margin: 10px;" /> There is an infinite grid of cells that can be alive or dead. For each iteration state of the grid is recalculated using several rules:</p>
+<ul>
+<li>Alive cell with 2 or 3 alive neighbors will live, in other cases it will die.</li>
+<li>A dead cell will become alive only if it has 3 alive neighbors.</li>
+</ul>
+<p>Such simple rules create a lot of interesting and complex patterns. For example, oscillator - a pattern that evolves in itself after number of iterations.</p>
+<h2 id="quil">Quil</h2>
+<p><a href="http://quil.info">Quil</a> is a Clojure wrapper around Processing. Dynamic nature of Clojure and simple Processing API for graphics gives ability to quickly prototype algorithmic graphics. Checkout <a href="https://github.com/quil/quil/wiki/Dynamic-Workflow-%28for-LightTable%29">Quil LightTable tutorial</a> and try their dynamic workflow.</p>
+<p>Basic Quil application with <a href="https://github.com/quil/quil/wiki/Functional-mode-%28fun-mode%29">funcional mode</a> consists of 3 main functions: setup, update and draw. Each function works with the state - a map of everything you need on the scene. Instead of updating global variables for each frame, Quil gives us an API to deal with program state in a functional way.</p>
+<h2 id="setup">Setup</h2>
+<p>is called once before the first frame. The main goal is to setup Quil scene and create a state map.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb1-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> setup </span>[]</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  (q/frame-rate <span class="dv">10</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  (q/color-mode <span class="at">:hsb</span>)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="co">; initial state</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">  {<span class="at">:life</span> #{[<span class="dv">24</span> <span class="dv">8</span>] [<span class="dv">37</span> <span class="dv">8</span>] [<span class="dv">17</span> <span class="dv">9</span>]}</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">   <span class="at">:cell-size</span> <span class="dv">5</span>})</a></code></pre></div>
+<p>Here <code>:life</code> is a set of all alive cells. Usually, developers implement grid by a twodimensional matrix. I’ve found working with the set just more comfortable for infinitely large grid.</p>
+<h2 id="update">Update</h2>
+<p>is a function that transforms the state for every frame.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb2-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> update </span>[state]</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  (<span class="kw">let</span> [life (<span class="at">:life</span> state)</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">        candidates (<span class="kw">set</span> (<span class="kw">mapcat</span> square life))</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">        next-life (<span class="kw">set</span> (<span class="kw">filter</span> #(will-live? life <span class="va">%</span>) candidates))] </a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">    (<span class="kw">assoc</span> state <span class="at">:life</span> next-life)))</a></code></pre></div>
+<p>First it creates <code>candidates</code> - the set of all alive cells and their empty neighbors. Only those cells can be alive in the next iteration. Next it creates <code>next-life</code> set from <code>candidates</code> that will survive this iteration.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb3-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> square </span>[[x y]]</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">  <span class="st">&quot;Gets a 3x3 square of points with a center at point [x y]&quot;</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">  (<span class="kw">for</span> [dx [-<span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">        dy [-<span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">    [(<span class="kw">+</span> x dx) (<span class="kw">+</span> y dy)]))</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">(<span class="bu">defn</span><span class="fu"> alive-neighbors </span>[life point]</a>
+<a class="sourceLine" id="cb3-8" data-line-number="8">  <span class="st">&quot;Counts alive neighbors for point [x y]&quot;</span></a>
+<a class="sourceLine" id="cb3-9" data-line-number="9">  (<span class="kw">-&gt;&gt;</span> (neighbors point)</a>
+<a class="sourceLine" id="cb3-10" data-line-number="10">       (<span class="kw">filter</span> #(<span class="kw">contains?</span> life <span class="va">%</span>)) <span class="co">; alive neighbors</span></a>
+<a class="sourceLine" id="cb3-11" data-line-number="11">       <span class="kw">count</span>))</a>
+<a class="sourceLine" id="cb3-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb3-13" data-line-number="13">(<span class="bu">defn</span><span class="fu"> will-live? </span>[life point]</a>
+<a class="sourceLine" id="cb3-14" data-line-number="14">  <span class="st">&quot;Checks whether point will live for current life state&quot;</span></a>
+<a class="sourceLine" id="cb3-15" data-line-number="15">  (<span class="kw">let</span> [n (alive-neighbors life point)]</a>
+<a class="sourceLine" id="cb3-16" data-line-number="16">    (<span class="kw">or</span> (<span class="kw">=</span> n <span class="dv">3</span>) (<span class="kw">and</span> (<span class="kw">=</span> n <span class="dv">2</span>) (<span class="kw">contains?</span> life point)))))</a></code></pre></div>
+<h2 id="draw">Draw</h2>
+<p>function takes a state and draws a frame.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb4-1" data-line-number="1">(<span class="bu">defn</span><span class="fu"> draw </span>[state]</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  (q/background <span class="dv">240</span>) <span class="co">; background color</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">  (q/stroke <span class="dv">220</span>) <span class="co">; cell border color</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">  (q/fill <span class="dv">180</span>) <span class="co">; cell body color</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">  (<span class="kw">doseq</span> [[x y] (<span class="at">:life</span> state)</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">          <span class="at">:let</span> [w (<span class="at">:cell-size</span> state)]]</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">    (q/rect (<span class="kw">*</span> w x) (<span class="kw">*</span> w y) w w <span class="dv">2</span>)))</a></code></pre></div>
+<p>It is simple like that. Just clears scene and draws a square for every alive cell.</p>
+<h2 id="tltr">TL;TR</h2>
+<p>The whole project with instructions how to run it is available on <a href="http://github.com/nbardiuk/gol">github</a>. Fill free to play with it.</p>
+<p><code>Have a nice hack ;)</code></p>
+    </section>
+</article>
+]]></description>
+    <pubDate>Sat, 29 Nov 2014 06:54:00 UT</pubDate>
+    <guid>https://nazarii.bardiuk.com/posts/game-of-live-clojure.html</guid>
+    <dc:creator>Nazarii Bardiuk</dc:creator>
+</item>
+
+    </channel>
+</rss>

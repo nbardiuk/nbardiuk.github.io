@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title> How to Hakyll CircleCI 2.0 @  Nazarii's blog</title>
+        <link rel="icon" href="../favicon.ico">
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../css/syntax.css" />
+        <meta name="google-site-verification" content="1eqgeS8dNQrx_2L4hO1e5FzIq3AbotzOVmASihAsJVA" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/xmlrpc" rel="pingback" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/webmention" rel="webmention" />
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <a href="../">Nazarii's blog</a>
+            </div>
+        </header>
+        <main role="main">
+            <article class="h-entry">
+    <link class="u-url" href="../posts/hakyll-circle.html">
+    <link rel="author" class="p-author h-card" href="../" />
+    <section class="header">
+        <h1 class="p-name">How to Hakyll CircleCI 2.0</h1>
+        Posted on <time class="dt-published" datetime="2018-08-19T14:00:00Z">August 19, 2018</time>
+    </section>
+    <section class="e-content">
+        <p>This post documents my <a href="https://github.com/nbardiuk/nbardiuk.github.io/blob/a2745429997f4f66bd488e330f694c60c4624194/.circleci/config.yml">CircleCI configuration</a> that builds Hakyll site and publishes it to GitHub pages.</p>
+<p>It is inspired by configurations found on the Internet.</p>
+<ul>
+<li><a href="https://pbrisbin.com/posts/haskell_project_checklist/#circleyml">Example of caching dependencies for stack</a> by Pat Brisbin</li>
+<li><a href="https://github.com/haskellweekly/haskellweekly.github.io/blob/b9e2f0e70aa0f8fe8d2a427fa6c64ec41a2b7965/tools/deploy.hs">Old publishing script of haskellweekly blog</a> by Taylor Fausak</li>
+<li><a href="https://www.stackbuilders.com/news/dr-hakyll-create-a-github-page-with-hakyll-and-circleci">Guide to publish GitHub page with Hakyll and CircleCI 1.0</a> by Juan Pedro Villa</li>
+</ul>
+<h2 id="overview">Overview</h2>
+<!-- vim-markdown-toc GFM -->
+<ul>
+<li><a href="#use-fpcomplete-docker-image">Use FPComplete docker image</a></li>
+<li><a href="#cache-compiled-dependencies">Cache compiled dependencies</a></li>
+<li><a href="#generate-content">Generate content</a></li>
+<li><a href="#push-_site-content-to-github-pages">Push <code>_site</code> content to GitHub pages</a></li>
+<li><a href="#referrers">Referrers</a></li>
+</ul>
+<!-- vim-markdown-toc -->
+<h2 id="use-fpcomplete-docker-image">Use FPComplete docker image</h2>
+<p>Docker is the simplest <a href="https://circleci.com/docs/2.0/executor-types/#overview">executor type</a> on CircleCI.</p>
+<p>This configuration reuses <a href="https://hub.docker.com/r/fpco/stack-build/">FPComplete’s image</a> with stack to avoid custom installation scripts.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">docker:</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="kw">-</span> <span class="fu">image:</span><span class="at"> fpco/stack-build:lts</span></a></code></pre></div>
+<h2 id="cache-compiled-dependencies">Cache compiled dependencies</h2>
+<p>The job is going to recompile all dependencies on every build because it is using clean docker image.</p>
+<p>It takes around 20 minutes to build template Hakyll blog. With <a href="https://circleci.com/docs/2.0/caching/">caching configuration</a> building time drops to less than a minute.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">-</span> <span class="fu">restore_cache:</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">    <span class="fu">name:</span><span class="at"> Restore Cached Dependencies</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="fu">keys:</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">      <span class="co"># find a cache for the same stack.yaml</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">      <span class="kw">-</span> stack-<span class="kw">{</span>{ .Branch <span class="kw">}</span>}-<span class="kw">{</span>{ checksum &quot;stack.yaml&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">      <span class="co"># when missing reuse from the same branch</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">      <span class="kw">-</span> stack-<span class="kw">{</span>{ .Branch <span class="kw">}</span>}-</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">      <span class="co"># when missing reuse the latest cache</span></a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">      <span class="kw">-</span> stack-</a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">    <span class="fu">name:</span><span class="at"> Resolve/Update Dependencies</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">    <span class="fu">command:</span><span class="at"> stack setup</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">    <span class="fu">command:</span><span class="at"> stack build --dependencies-only</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="kw">-</span> <span class="fu">save_cache:</span></a>
+<a class="sourceLine" id="cb2-15" data-line-number="15">    <span class="fu">name:</span><span class="at"> Cache Dependencies</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16">    <span class="fu">key:</span><span class="at"> stack-{{ .Branch }}-{{ checksum &quot;stack.yaml&quot; }}</span></a>
+<a class="sourceLine" id="cb2-17" data-line-number="17">    <span class="fu">paths:</span></a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">      <span class="kw">-</span> ~/.stack</a>
+<a class="sourceLine" id="cb2-19" data-line-number="19">      <span class="kw">-</span> ./.stack-work</a></code></pre></div>
+<h2 id="generate-content">Generate content</h2>
+<p>Builds <code>site</code> application and uses it to generate static content</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">    <span class="fu">name:</span><span class="at"> Build Site App</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">    <span class="fu">command:</span><span class="at"> stack build --pedantic</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">    <span class="fu">name:</span><span class="at"> Generate Static Site</span></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">    <span class="fu">command:</span><span class="at"> stack exec site build</span></a></code></pre></div>
+<h2 id="push-_site-content-to-github-pages">Push <code>_site</code> content to GitHub pages</h2>
+<p>Here <code>master</code> branch is not used for version control but rather as production environment so it makes more sense to keep it clean and wipe previous site content by <code>git push --force</code></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw">-</span> <span class="fu">run:</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">    <span class="fu">name:</span><span class="at"> Publish GitHub Pages</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">    <span class="fu">working_directory:</span><span class="at"> </span><span class="st">'./_site'</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">    <span class="fu">command:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">      <span class="co"># initalize repo</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">      git init</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">      git config user.name  <span class="st">'CircleCI'</span></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">      git config user.email <span class="st">'job@circleci.com'</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">      <span class="co"># add generated files</span></a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">      git add .</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">      git commit -m <span class="st">&quot;publish $CIRCLE_SHA1 [ci skip]&quot;</span></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">      <span class="co"># push to pages branch</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13">      git remote add origin <span class="st">&quot;$CIRCLE_REPOSITORY_URL&quot;</span></a>
+<a class="sourceLine" id="cb4-14" data-line-number="14">      git push --force origin master</a></code></pre></div>
+<h2 id="referrers">Referrers</h2>
+<ul>
+<li><a href="https://mastodon.social/@Nbardiuk/100577686469743725">nbardiuk@mastodon</a></li>
+<li><a href="https://twitter.com/nbardiuk/status/1031156387185930240">nbardiuk@twitter</a></li>
+<li><a href="https://www.reddit.com/r/haskell/comments/98jtii/how_to_hakyll_circleci_20/">r/haskell</a></li>
+<li><a href="https://haskellweekly.news/issues/121.html">Hasell Weekly 121</a></li>
+</ul>
+    </section>
+</article>
+
+        </main>
+        <footer class="h-card">
+          © 2014–2018 <span class="p-name">Nazarii Bardiuk</span>
+          <link class="u-url" href="https://nazarii.bardiu.com" rel="me" />
+          <link class="u-email" href="mailto:nazarii@bardiuk.com" rel="me" />
+          <link href="https://github.com/nbardiuk" rel="me" />
+          <link href="https://twitter.com/nbardiuk" rel="me" />
+          <link href="https://mastodon.social/@Nbardiuk" rel="me" />
+          <link href="https://keybase.io/nbardiuk" rel="me" />
+        </footer>
+    </body>
+</html>

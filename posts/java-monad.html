@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title> Monads with Java 8 @  Nazarii's blog</title>
+        <link rel="icon" href="../favicon.ico">
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../css/syntax.css" />
+        <meta name="google-site-verification" content="1eqgeS8dNQrx_2L4hO1e5FzIq3AbotzOVmASihAsJVA" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/xmlrpc" rel="pingback" />
+        <link href="https://webmention.io/nazarii.bardiuk.com/webmention" rel="webmention" />
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <a href="../">Nazarii's blog</a>
+            </div>
+        </header>
+        <main role="main">
+            <article class="h-entry">
+    <link class="u-url" href="../posts/java-monad.html">
+    <link rel="author" class="p-author h-card" href="../" />
+    <section class="header">
+        <h1 class="p-name">Monads with Java 8</h1>
+        Posted on <time class="dt-published" datetime="2015-11-08T22:00:00Z">November  8, 2015</time>
+    </section>
+    <section class="e-content">
+        <p>It is a paraphrase to Java of <a href="http://blog.sigfpe.com/2007/04/trivial-monad.html">“The Trivial Monad”</a> by Dan Piponi with applications for Java developers.</p>
+<h2 id="an-intuition">An intuition</h2>
+<p>Monad is like a …</p>
+<p>There is no good analogy to explain what is monad to new person (<a href="https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/">monad tutorial fallacy</a>). The best way to get it right is just to do some coding. So lets explore simple design pattern - one-way wrapper. Such wrapper can wrap value but can’t unwrap it back.</p>
+<p>In Java it can look like simple immutable object</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="at">@ToString</span> <span class="at">@EqualsAndHashCode</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  <span class="kw">private</span> <span class="dt">final</span> T value;</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="kw">private</span> <span class="fu">Wrap</span>(T value) { <span class="kw">this</span>.<span class="fu">value</span> = value; }</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">  <span class="kw">public</span> <span class="dt">static</span> &lt;T&gt; Wrap&lt;T&gt; <span class="fu">of</span>(T value) {</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">    <span class="kw">return</span> <span class="kw">new</span> Wrap&lt;&gt;(value);</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">  }</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">}</a></code></pre></div>
+<p>This class is just going to wrap a value using factory method <code>of</code>. There are no getters and setters, but present <code>toString</code>, <code>equals</code> and <code>hashCode</code> for convenience (see <a href="https://projectlombok.org/">lombok</a>).</p>
+<p>To do something with value we need a method that will apply mapping function and then return new wrapped value. It is important to keep value wrapped so it never escapes.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="co">// ...</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">  <span class="kw">public</span> &lt;R&gt; Wrap&lt;R&gt; <span class="fu">map</span>(Function&lt;T, R&gt; mapper) {</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="kw">return</span> Wrap.<span class="fu">of</span>(mapper.<span class="fu">apply</span>(value));</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">}</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb3-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; a = Wrap.<span class="fu">of</span>(<span class="dv">1</span>);           <span class="co">// Wrap(value=1)</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">Wrap&lt;<span class="bu">Integer</span>&gt; b = a.<span class="fu">map</span>(i -&gt; i + <span class="dv">9</span>);    <span class="co">// Wrap(value=10)</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">Wrap&lt;<span class="bu">Integer</span>&gt; c = b.<span class="fu">map</span>(i -&gt; i * <span class="dv">11</span>);   <span class="co">// Wrap(value=110)</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">a.<span class="fu">map</span>(i -&gt; i * <span class="dv">10</span>).<span class="fu">map</span>(i -&gt; i + <span class="dv">11</span>);    <span class="co">// Wrap(value=21)</span></a></code></pre></div>
+<p>OK, now we can do something with this, but usually things are more interesting. After starting using wrapped values here and there we eventually create method like this</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb4-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; <span class="fu">inc</span>(<span class="bu">Integer</span> x) {</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  <span class="kw">return</span> Wrap.<span class="fu">of</span>(x + <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">}</a></code></pre></div>
+<p><code>inc</code> gets a number and then returns a wrapped result. It is very useful business logic and we want to apply it even to wrapped values.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb5-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; a = Wrap.<span class="fu">of</span>(<span class="dv">1</span>);     <span class="co">// Wrap(value=1)</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">a.<span class="fu">map</span>(<span class="kw">this</span>::inc);                 <span class="co">// Wrap(value=Wrap(value=2))</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">a.<span class="fu">map</span>(<span class="kw">this</span>::inc).<span class="fu">map</span>(<span class="kw">this</span>::inc);  <span class="co">// !!! COMPILATION ERROR</span></a></code></pre></div>
+<p>First problem we face is that it wraps already wrapped result. And then we cannot continue applying it - <code>inc</code> accepts only <code>Integer</code> but not <code>Wrap&lt;Integer&gt;</code> instance.</p>
+<p>There should be some way to <code>inc</code> value and not wrap it again.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">  <span class="co">// ...</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">  <span class="kw">public</span> &lt;R&gt; Wrap&lt;R&gt; <span class="fu">flatMap</span>(Function&lt;T, Wrap&lt;R&gt;&gt; mapper) {</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">    <span class="kw">return</span> mapper.<span class="fu">apply</span>(value);</a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb6-6" data-line-number="6">}</a></code></pre></div>
+<p><code>flatMap</code> is still safe - it doesn’t give user a plain value but provides it to the mapper.</p>
+<p>Now we can apply <code>inc</code> several times in chains</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb7-1" data-line-number="1">Wrap&lt;<span class="bu">Integer</span>&gt; a = Wrap.<span class="fu">of</span>(<span class="dv">1</span>);              <span class="co">// Wrap(value=1)</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">a.<span class="fu">flatMap</span>(<span class="kw">this</span>::inc);                      <span class="co">// Wrap(value=2)</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">a.<span class="fu">flatMap</span>(<span class="kw">this</span>::inc).<span class="fu">flatMap</span>(<span class="kw">this</span>::inc);   <span class="co">// Wrap(value=3)</span></a></code></pre></div>
+<p>Actually <code>flatMap</code> is more generic then <code>map</code> and we can implement <code>map</code> using it</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">class</span> Wrap&lt;T&gt; {</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">  <span class="co">// ...</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">  &lt;R&gt; Wrap&lt;R&gt; <span class="fu">map</span>(Function&lt;T, R&gt; mapper) {</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">    <span class="kw">return</span> <span class="fu">flatMap</span>(mapper.<span class="fu">andThen</span>(Wrap::of));</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">}</a></code></pre></div>
+<p><code>andThen</code> composes function with another, passing result of first as argument to the second <a href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Function.html#andThen-java.util.function.Function-">Function#andThen</a></p>
+<p>Now we have all tools to work with our wrapper type. <code>of</code> wraps a value and <code>flatMap</code> gives a way to modify it without need to unwrap anything. And we can chain multiple transformations without worry how to unwrap layers of results.</p>
+<p>Basically, this is a monad - type that provides APIs to enclose some value and modify it without exiting enclosed context</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">interface</span> Monad&lt;T&gt; {</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">  Monad&lt;T&gt; <span class="fu">of</span>(T value);</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">  &lt;R&gt; Monad&lt;R&gt; <span class="fu">flatMap</span>(Function&lt;T, Monad&lt;R&gt;&gt; mapper);</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">}</a></code></pre></div>
+<h2 id="real-world-problems">Real world problems</h2>
+<p>In Java there are several monadic types and even more with growing number of libraries. I will use <a href="http://docs.oracle.com/javase/8/docs/api/java/util/Optional.html">Optional</a> next, but these examples can be similarly applied to others.</p>
+<h3 id="operations-on-optionals">Operations on Optionals</h3>
+<p>Assume we need to add two optional values. And we don’t know how to unwrap them, I mean don’t know what to do with empty values. All what we want is only add values together and leave that decision for later</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb10-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; a = ...</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; b = ...</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="kw">return</span> <span class="fu">add</span>(a, b);</a></code></pre></div>
+<p>Such function <code>add</code> should return new Optional with the result of adding values</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb11-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; <span class="fu">add</span>(Optional&lt;<span class="bu">Integer</span>&gt; oa, Optional&lt;<span class="bu">Integer</span>&gt; ob) {</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">  <span class="kw">return</span> oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; a + b));</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">}</a></code></pre></div>
+<p>Lambda inside <code>flatMap</code> has access to value of <code>oa</code> and uses it to increment value of <code>ob</code> similarly to previous <code>inc</code> function.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb12-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; a = Optional.<span class="fu">of</span>(<span class="dv">13</span>);</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; b = Optional.<span class="fu">of</span>(<span class="dv">42</span>);</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="fu">add</span>(a, b);                 <span class="co">// Optional[55]</span></a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="fu">add</span>(a, Optional.<span class="fu">empty</span>());  <span class="co">// Optional.empty</span></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"><span class="fu">add</span>(Optional.<span class="fu">empty</span>(), b);  <span class="co">// Optional.empty</span></a></code></pre></div>
+<p>What if we need to perform other operations? Lets create another method that additionally accepts an operation</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb13-1" data-line-number="1">&lt;A, B, R&gt; Optional&lt;R&gt; <span class="fu">compute</span>(BiFunction&lt;A, B, R&gt; operation, Optional&lt;A&gt; oa, Optional&lt;B&gt; ob) {</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">  <span class="kw">return</span> oa.<span class="fu">flatMap</span>(a -&gt; ob.<span class="fu">map</span>(b -&gt; operation.<span class="fu">apply</span>(a, b)));</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">}</a></code></pre></div>
+<p>It is little bit to verbose but basically <code>compute</code> applies <code>operation</code> on values from optionals and returns optional result</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb14-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; a = Optional.<span class="fu">of</span>(<span class="dv">13</span>);</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; b = Optional.<span class="fu">of</span>(<span class="dv">42</span>);</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3">BiFunction&lt;<span class="bu">Integer</span>, <span class="bu">Integer</span>, <span class="bu">Integer</span>&gt; plus = (x, y) -&gt; x + y;</a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">BiFunction&lt;<span class="bu">Integer</span>, <span class="bu">Integer</span>, <span class="bu">Integer</span>&gt; times = (x, y) -&gt; x * y;</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"><span class="fu">compute</span>(plus, a, b);    <span class="co">// Optional[55]</span></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6"><span class="fu">compute</span>(times, a, b);   <span class="co">// Optional[546]</span></a></code></pre></div>
+<h3 id="streams-of-optionals">Streams of Optionals</h3>
+<p>So far so good. But with Java 8 we usually deal with a lot of streams. It is a common case when during pipeline we end up with stream of optional values. Now as we know how to perform operations on optionals lets find a product of all optional values in stream</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb15-1" data-line-number="1">Optional&lt;<span class="bu">Integer</span>&gt; one = Optional.<span class="fu">of</span>(<span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">Stream&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt; stream = Stream.<span class="fu">of</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>).<span class="fu">map</span>(Optional::of);</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">stream.<span class="fu">reduce</span>(one, (acc, elem) -&gt; <span class="fu">compute</span>(times, acc, elem));  <span class="co">// Optional[24]</span></a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">stream = Stream.<span class="fu">of</span>(Optional.<span class="fu">of</span>(<span class="dv">10</span>), Optional.<span class="fu">empty</span>());</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">stream.<span class="fu">reduce</span>(one, (acc, elem) -&gt; <span class="fu">compute</span>(times, acc, elem));  <span class="co">// Optional.empty</span></a></code></pre></div>
+<p>We provide initial value <code>one</code> and then compute product of accumulator and each value in stream.</p>
+<p>APIs are not always so friendly. Lets look at the reduce but without initial value</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb16-1" data-line-number="1">stream.<span class="fu">reduce</span>((acc, elem) -&gt; <span class="fu">compute</span>(times, acc, elem));  <span class="co">// Optional[Optional[24]]</span></a></code></pre></div>
+<p>It wraps result into optional, because stream can be empty and we didn’t provide any initial value.</p>
+<h3 id="flattening">Flattening</h3>
+<p>How can we deal with optional of optional without unwrapping it? We can flatten it with <code>flatMap</code></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb17-1" data-line-number="1">Optional&lt;Optional&lt;<span class="bu">Integer</span>&gt;&gt; ooa = Optional.<span class="fu">of</span>(Optional.<span class="fu">of</span>(<span class="dv">24</span>));</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">Optional&lt;<span class="bu">Integer</span>&gt; oa = ooa.<span class="fu">flatMap</span>(o -&gt; o); <span class="co">// Optional[24]</span></a></code></pre></div>
+<p>Function <code>o -&gt; o</code> is called identity and actually it is so useful that you can find it in standard library <a href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Function.html#identity--">Function#identity</a></p>
+<h2 id="wrap-up">Wrap-up</h2>
+<p>Sometimes it is better to operate on monads and leave decision how to unwrap them for later. Consider this next time when you will try to get value from Optional, CompletableFuture or some other monadic type. I hope you’ve learned here one or two methods how to simplify your design using operations on Monads.</p>
+<p>Code is available on <a href="https://gist.github.com/nbardiuk/91793d997bed62f36175">Gist</a> - feel free to play with it.</p>
+<p><code>Have a nice hack ;)</code></p>
+<h2 id="referrers">Referrers</h2>
+<ul>
+<li><a href="https://medium.com/@afcastano/monads-for-java-developers-part-1-the-optional-monad-aa6e797b8a6e">Monads for Java developers: Part 1 — The Optional monad</a></li>
+<li><a href="https://medium.com/@afcastano/monads-for-java-developers-part-2-the-result-and-log-monads-a9ecc0f231bb">Monads for Java developers: Part 2 — Two monads more</a></li>
+</ul>
+    </section>
+</article>
+
+        </main>
+        <footer class="h-card">
+          © 2014–2018 <span class="p-name">Nazarii Bardiuk</span>
+          <link class="u-url" href="https://nazarii.bardiu.com" rel="me" />
+          <link class="u-email" href="mailto:nazarii@bardiuk.com" rel="me" />
+          <link href="https://github.com/nbardiuk" rel="me" />
+          <link href="https://twitter.com/nbardiuk" rel="me" />
+          <link href="https://mastodon.social/@Nbardiuk" rel="me" />
+          <link href="https://keybase.io/nbardiuk" rel="me" />
+        </footer>
+    </body>
+</html>
