@@ -12,6 +12,8 @@ publish: build
 .PHONY: build
 build: setup
 	hugo
+	cd public && \
+	git status -vv
 
 .PHONY: setup
 setup: clean
