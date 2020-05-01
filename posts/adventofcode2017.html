@@ -1,95 +1,118 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title> What I've learned during Advent of Code @  Nazarii's blog</title>
-        <link rel="icon" href="../favicon.ico">
-        <link rel="stylesheet" href="../css/default.css" />
-        <link rel="stylesheet" href="../css/syntax.css" />
-        <meta name="google-site-verification" content="1eqgeS8dNQrx_2L4hO1e5FzIq3AbotzOVmASihAsJVA" />
-        <link href="https://webmention.io/nazarii.bardiuk.com/xmlrpc" rel="pingback" />
-        <link href="https://webmention.io/nazarii.bardiuk.com/webmention" rel="webmention" />
-    </head>
-    <body>
-        <header>
-            <div class="logo">
-                <a href="../">Nazarii's blog</a>
-            </div>
-        </header>
-        <main role="main">
-            <article class="h-entry">
-    <link class="u-url" href="../posts/adventofcode2017.html">
-    <link rel="author" class="p-author h-card" href="../" />
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> What I&#39;ve learned during Advent of Code @  Nazarii's blog</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/default.css" />
+    <meta name="google-site-verification" content="1eqgeS8dNQrx_2L4hO1e5FzIq3AbotzOVmASihAsJVA"/>
+    <link href="https://webmention.io/nazarii.bardiuk.com/xmlrpc" rel="pingback"/>
+    <link href="https://webmention.io/nazarii.bardiuk.com/webmention" rel="webmention"/>
+</head>
+<body><header>
+    <div class="logo">
+        <a href="/">Nazarii's blog</a>
+    </div>
+</header>
+<main role="main">
+<article class="h-entry">
+    <link class="u-url" href="https://nazarii.bardiuk.com/posts/adventofcode2017.html">
+    <link rel="author" class="p-author h-card" href="/"/>
     <section class="header">
-        <h1 class="p-name">What I've learned during Advent of Code</h1>
-        Posted on <time class="dt-published" datetime="2018-11-08T00:00:00Z">November  8, 2018</time>
+        <h1 class="p-name">What I&#39;ve learned during Advent of Code</h1>
+        Posted on 
+        <time class="dt-published" datetime="2018-11-08T00:00:00Z">
+            November 8, 2018
+        </time>
     </section>
-    <section class="e-content">
+    <section class="e-content" >
         <blockquote>
-<p>Advent of Code is a series of small programming puzzles for a variety of skill sets and skill levels in any programming language you like. People use them as a speed contest, interview prep, company training, university coursework, practice problems, or to challenge each other.</p>
+<p>Advent of Code is a series of small programming puzzles for a variety of skill sets and skill levels in any programming language you like.
+People use them as a speed contest, interview prep, company training, university coursework, practice problems, or to challenge each other.</p>
 <p><a href="https://adventofcode.com/about">About Advent of Code</a></p>
 </blockquote>
-<p>Puzzles are fun and Advent of Code has 25 of them! Tasks are connected by common narrative and are published every day in December until Christmas. Schedule keeps me motivated to complete each challenge withing days it was published so I can avoid spoilers. Also on <a href="https://www.reddit.com/r/adventofcode">reddit</a> people discuss their solutions in terms of lines of code, performance or interesting insights they discovered.</p>
-<p>Last year I’ve challenged myself to use only TDD and FP in Scala for <a href="https://github.com/nbardiuk/adventofcode2017">my solutions</a>. I would like to share what I’ve learned from the challenge and how I am going to challenge myself this time.</p>
+<p>Puzzles are fun and Advent of Code has 25 of them!
+Tasks are connected by common narrative and are published every day in December until Christmas.
+Schedule keeps me motivated to complete each challenge withing days it was published so I can avoid spoilers.
+Also on <a href="https://www.reddit.com/r/adventofcode">reddit</a> people discuss their solutions in terms of lines of code, performance or interesting insights they discovered.</p>
+<p>Last year I&rsquo;ve challenged myself to use only TDD and FP in Scala for <a href="https://github.com/nbardiuk/adventofcode2017">my solutions</a>.
+I would like to share what I&rsquo;ve learned from the challenge and how I am going to challenge myself this time.</p>
 <h2 id="tdd">TDD</h2>
 <p>I restricted myself to pure TDD where I would write minimal test first and then only implement enough to fix failing test.</p>
 <h3 id="inside-out">Inside Out</h3>
-<p>My first approach was to decompose puzzle into small problems and start from writing a test for one of them. It is relaxing coding experience - no need to think. All hard work was done during design of the test case, all I need to do is just to transform input into correct output.</p>
+<p>My first approach was to decompose puzzle into small problems and start from writing a test for one of them.
+It is relaxing coding experience - no need to think.
+All hard work was done during design of the test case, all I need to do is just to transform input into correct output.</p>
 <p>For complicated problems if I made a mistake during decomposition I had to not only fix the code but also I had to rewrite the whole test specification. My tests where using private API of algorithm implementation and if it is wrong everything goes to the bin.</p>
-<p>Some challenges where hard for me to implement using only immutable data structures. So I would cheat with mutable internal state while trying to keep public signature pure. Mutable state requires more complicated test setup comparing to just passing parameters into a function and checking output.</p>
+<p>Some challenges where hard for me to implement using only immutable data structures.
+So I would cheat with mutable internal state while trying to keep public signature pure.
+Mutable state requires more complicated test setup comparing to just passing parameters into a function and checking output.</p>
 <h3 id="outside-in">Outside In</h3>
-<p>Next approach was to write test for problem using its public interface. I could use example scenario from problem definition as my first test case or maybe try to think for something simpler.</p>
-<p>For me it is more satisfying way to code. It creates a safety net on the perimeter and allows do be more creative inside.</p>
-<p>In this case tests can survive most of internal changes. The biggest downside I discovered was that some tests had very wide scope. Coding mistakes are harder to debug, it takes longer to find where it went wrong.</p>
+<p>Next approach was to write test for problem using its public interface.
+I could use example scenario from problem definition as my first test case or maybe try to think for something simpler.</p>
+<p>For me it is more satisfying way to code.
+It creates a safety net on the perimeter and allows do be more creative inside.</p>
+<p>In this case tests can survive most of internal changes.
+The biggest downside I discovered was that some tests had very wide scope. Coding mistakes are harder to debug, it takes longer to find where it went wrong.</p>
 <h3 id="goof-around">Goof around</h3>
-<p>I ended up using mixed approach. If problem wasn’t that hard I would just create a test case from example provided in the problem definition. Or I could start with tests for decomposed problem but as soon as I reach public API I could delete smaller tests.</p>
+<p>I ended up using mixed approach.
+If problem wasn&rsquo;t that hard I would just create a test case from example provided in the problem definition.
+Or I could start with tests for decomposed problem but as soon as I reach public API I could delete smaller tests.</p>
 <p>My important takeaway was that it is OK to remove some intermediate tests once implementation reaches some end to end functionality.</p>
 <h3 id="refactoring">Refactoring</h3>
-<p>Daily challenge consists of 2 parts, where second part would build on top of first one. Usually first part can be solved using simple suboptimal algorithm but second one requires to optimize it in some way (that I never could guess). It was great opportunity to practice Kent Beck advice on refactoring</p>
+<p>Daily challenge consists of 2 parts, where second part would build on top of first one.
+Usually first part can be solved using simple suboptimal algorithm but second one requires to optimize it in some way (that I never could guess).
+It was great opportunity to practice Kent Beck advice on refactoring</p>
 <blockquote>
-<p>When you find you have to add a feature to a program, and the program’s code is not structured in a convenient way to add the feature, first refactor the program to make it easy to add the feature, then add the feature.</p>
+<p>When you find you have to add a feature to a program, and the program&rsquo;s code is not structured in a convenient way to add the feature, first refactor the program to make it easy to add the feature, then add the feature.</p>
 </blockquote>
-<p>And then I had my own third part for the day - looking others solutions on <a href="https://www.reddit.com/r/adventofcode">reddit</a>. Sometimes I would come back with new ideas and good tests should keep me safe without spoiling fun.</p>
+<p>And then I had my own third part for the day - looking others solutions on <a href="https://www.reddit.com/r/adventofcode">reddit</a>.
+Sometimes I would come back with new ideas and good tests should keep me safe without spoiling fun.</p>
 <h2 id="fp-in-scala">FP in Scala</h2>
 <p>I was interested how far I can get with pure functions to solve algorithmic problems.</p>
-<p>Simple problems are so straightforward in FP that I feel almost like cheating. I can restate problem definition by composing pure functions and it produces the right answer.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">def</span> <span class="fu">countUnique</span>(passphrases: Seq[String]): Int = passphrases.<span class="fu">count</span>(unique)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">def</span> <span class="fu">unique</span>(passphrase: String): Boolean = <span class="fu">unique</span>(<span class="fu">words</span>(passphrase))</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">def</span> <span class="fu">words</span>(passphrase: String) = passphrase.<span class="fu">split</span>(<span class="ch">' '</span>)</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">def</span> unique[T](ts: Seq[T]): Boolean = ts.<span class="fu">toSet</span>.<span class="fu">size</span> == ts.<span class="fu">size</span> </a></code></pre></div>
-<p>Complex problems require to use another way of thinking. Lazy Streams and recursion were great tools to keep code pure and readable. But for some cases I had to fall back to mutable Arrays and Maps.</p>
-<p>Avoidance of mutability stimulated me to explore functional programming beyond what I thought I want. In one such exploration I’ve learned about <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator">Fixed-point combinator</a> and how to <a href="https://michid.wordpress.com/2009/02/23/function_mem/">memoize</a> recursive functions.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">def</span> fibonachi: Int =&gt; Int =</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">  fixMemo[Int, Int] { fibonachi =&gt; n =&gt;</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="kw">if</span> (n == <span class="dv">1</span> || n == <span class="dv">0</span>) <span class="dv">1</span></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="kw">else</span> <span class="fu">fibonachi</span>(n<span class="dv">-1</span>) + <span class="fu">fibonachi</span>(n<span class="dv">-2</span>)</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">  }(_)</a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="kw">private</span> <span class="kw">def</span> fixMemo[I, O](fix: (I =&gt; O) =&gt; I =&gt; O): I =&gt; O = {</a>
-<a class="sourceLine" id="cb2-8" data-line-number="8">  <span class="kw">lazy</span> <span class="kw">val</span> io: I =&gt; O = <span class="fu">memo</span>()(<span class="fu">fix</span>(io)(_))</a>
-<a class="sourceLine" id="cb2-9" data-line-number="9">  io</a>
-<a class="sourceLine" id="cb2-10" data-line-number="10">}</a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="kw">private</span> <span class="kw">def</span> memo[I, O](cache: mutable.<span class="fu">Map</span>[I, O] = mutable.<span class="fu">HashMap</span>[I, O]())(</a>
-<a class="sourceLine" id="cb2-13" data-line-number="13">  iToO: I =&gt; O): I =&gt; O =</a>
-<a class="sourceLine" id="cb2-14" data-line-number="14">  i =&gt; cache.<span class="fu">getOrElseUpdate</span>(i, <span class="fu">iToO</span>(i)</a></code></pre></div>
-<h2 id="this-year">This year</h2>
-<p>This time I am going to use Haskell. I want to make sure I don’t slip into mutable arrays and maps again. Also I am interested to see how lazy programming language will affect my approach to solutions.</p>
-<p>My main goal this year is to actually complete all 25 puzzles. And I expect to learn couple new tricks from fellow puzzle solvers.</p>
+<p>Simple problems are so straightforward in FP that I feel almost like cheating.
+I can restate problem definition by composing pure functions and it produces the right answer.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2"><code class="language-scala" data-lang="scala"><span style="font-weight:bold">def</span> countUnique(passphrases<span style="font-weight:bold">:</span> <span style="">Seq</span>[<span style="">String</span>])<span style="font-weight:bold">:</span> <span style="">Int</span> = passphrases.count(unique)
+<span style="font-weight:bold">def</span> unique(passphrase<span style="font-weight:bold">:</span> <span style="">String</span>)<span style="font-weight:bold">:</span> <span style="">Boolean</span> = unique(words(passphrase))
+<span style="font-weight:bold">def</span> words(passphrase<span style="font-weight:bold">:</span> <span style="">String</span>) <span style="font-weight:bold">=</span> passphrase.split(<span style="font-style:italic">&#39; &#39;</span>)
+<span style="font-weight:bold">def</span> unique[<span style="">T</span>](ts<span style="font-weight:bold">:</span> <span style="">Seq</span>[<span style="">T</span>])<span style="font-weight:bold">:</span> <span style="">Boolean</span> = ts.toSet.size == ts.size 
+</code></pre></div><p>Complex problems require to use another way of thinking.
+Lazy Streams and recursion were great tools to keep code pure and readable.
+But for some cases I had to fall back to mutable Arrays and Maps.</p>
+<p>Avoidance of mutability stimulated me to explore functional programming beyond what I thought I want.
+In one such exploration I&rsquo;ve learned about <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator">Fixed-point combinator</a> and how to <a href="https://michid.wordpress.com/2009/02/23/function_mem/">memoize</a> recursive functions.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2"><code class="language-scala" data-lang="scala"><span style="font-weight:bold">def</span> fibonachi<span style="font-weight:bold">:</span> <span style="">Int</span> =&gt; <span style="font-weight:bold">Int</span> <span style="font-weight:bold">=</span>
+  fixMemo[<span style="">Int</span>, <span style="">Int</span>] { fibonachi <span style="font-weight:bold">=&gt;</span> n <span style="font-weight:bold">=&gt;</span>
+    <span style="font-weight:bold">if</span> (n == 1 || n == 0) 1
+    <span style="font-weight:bold">else</span> fibonachi(n-1) + fibonachi(n-2)
+  }(<span style="font-weight:bold">_</span>)
+
+<span style="font-weight:bold">private</span> <span style="font-weight:bold">def</span> fixMemo[<span style="">I</span>, <span style="">O</span>](fix<span style="font-weight:bold">:</span> (<span style="">I</span> =&gt; <span style="">O</span>) <span style="font-weight:bold">=&gt;</span> I <span style="font-weight:bold">=&gt;</span> O)<span style="font-weight:bold">:</span> <span style="">I</span> =&gt; O <span style="font-weight:bold">=</span> {
+  <span style="font-weight:bold">lazy</span> <span style="font-weight:bold">val</span> io<span style="font-weight:bold">:</span> <span style="">I</span> =&gt; O <span style="font-weight:bold">=</span> memo()(fix(io)(<span style="font-weight:bold">_</span>))
+  io
+}
+
+<span style="font-weight:bold">private</span> <span style="font-weight:bold">def</span> memo[<span style="">I</span>, <span style="">O</span>](cache<span style="font-weight:bold">:</span> <span style="">mutable.Map</span>[<span style="">I</span>, <span style="">O</span>] <span style="font-weight:bold">=</span> mutable.<span style="font-weight:bold">HashMap</span>[<span style="">I</span>, <span style="">O</span>]())(
+  iToO<span style="font-weight:bold">:</span> <span style="">I</span> =&gt; O)<span style="font-weight:bold">:</span> <span style="">I</span> =&gt; O <span style="font-weight:bold">=</span>
+  i <span style="font-weight:bold">=&gt;</span> cache.getOrElseUpdate(i, iToO(i)
+</code></pre></div><h2 id="this-year">This year</h2>
+<p>This time I am going to use Haskell.
+I want to make sure I don&rsquo;t slip into mutable arrays and maps again.
+Also I am interested to see how lazy programming language will affect my approach to solutions.</p>
+<p>My main goal this year is to actually complete all 25 puzzles.
+And I expect to learn couple new tricks from fellow puzzle solvers.</p>
+
     </section>
 </article>
 
-        </main>
-        <footer class="h-card">
-          © 2014–2018 <span class="p-name">Nazarii Bardiuk</span>
-          <link class="u-url" href="https://nazarii.bardiu.com" rel="me" />
-          <link class="u-email" href="mailto:nazarii@bardiuk.com" rel="me" />
-          <link href="https://github.com/nbardiuk" rel="me" />
-          <link href="https://twitter.com/nbardiuk" rel="me" />
-          <link href="https://mastodon.social/@Nbardiuk" rel="me" />
-          <link href="https://keybase.io/nbardiuk" rel="me" />
-        </footer>
-    </body>
+        </main><footer class="h-card">
+    © 2014–2018 <span class="p-name">Nazarii Bardiuk</span>
+    <link class="u-url" href="https://nazarii.bardiu.com" rel="me"/>
+    <link class="u-email" href="mailto:nazarii@bardiuk.com" rel="me"/>
+    <link href="https://github.com/nbardiuk" rel="me"/>
+    <link href="https://twitter.com/nbardiuk" rel="me"/>
+    <link href="https://mastodon.social/@Nbardiuk" rel="me"/>
+</footer>
+</body>
 </html>
