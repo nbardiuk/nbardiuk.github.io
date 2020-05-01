@@ -1,7 +1,7 @@
 ---
 title:  "Java Sequence"
 date: 2016-10-16 22:00:00
-permalink: /java-sequence/
+aliases: [/java-sequence/index.html]
 ---
 
 In this article I would like to explore a `sequence` function and its implementation in Java.

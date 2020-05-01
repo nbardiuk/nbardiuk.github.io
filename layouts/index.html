@@ -1,0 +1,15 @@
+{{ define "main" }}
+{{ range .Site.RegularPages }}
+<section class="list-post">
+    <a class="u-url" href="{{ .Permalink }}">
+        <div class="list-post-title p-name">{{ .Title }}</div>
+        <div class="list-post-date">
+            <time class="dt-published" 
+                  datetime="{{ .Date.Format "2006-01-02T00:00:00Z" }}">
+                {{ .Date.Format (.Site.Params.dateform | default "January 2006") }}
+            </time>
+        </div>
+    </a>
+</section>
+{{ end }}
+{{ end }}

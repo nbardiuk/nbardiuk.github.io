@@ -1,6 +1,7 @@
 ---
 title:  "Monads with Java 8"
 date:   2015-11-08 22:00:00
+aliases: [/java-monad/index.html]
 ---
 It is a paraphrase to Java of ["The Trivial Monad"][trivial-monad] by Dan Piponi with applications for Java developers.
 

@@ -3,6 +3,6 @@ with pkgs;
 stdenv.mkDerivation {
   name = "dev_shell";
   buildInputs = [
-    stack
+    hugo
   ];
 }

@@ -1,0 +1,16 @@
+{{ define "main" }}
+<article class="h-entry">
+    <link class="u-url" href="{{ .Permalink }}">
+    <link rel="author" class="p-author h-card" href="/"/>
+    <section class="header">
+        <h1 class="p-name">{{ .Title }}</h1>
+        Posted on 
+        <time class="dt-published" datetime="{{ .Date.Format "2006-01-02T00:00:00Z" }}">
+            {{ .Date.Format (.Site.Params.dateform | default "January 2006") }}
+        </time>
+    </section>
+    <section class="e-content" >
+        {{ .Content }}
+    </section>
+</article>
+{{ end }}

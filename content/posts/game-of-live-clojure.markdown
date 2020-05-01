@@ -1,6 +1,7 @@
 ---
 title:  "Game Of Live in Clojure with Quil"
 date:   2014-11-29 06:54:00
+aliases: [/game-of-live-clojure/index.html]
 ---
 This is my attempt to implement [Conway's Game of Life][conwaylife] in Clojure using Quil library.
 
