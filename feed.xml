@@ -8,8 +8,83 @@
         <managingEditor>nazarii@bardiuk.com (Nazarii Bardiuk)</managingEditor>
         <webMaster>nazarii@bardiuk.com (Nazarii Bardiuk)</webMaster>
         
-        <lastBuildDate>Thu, 08 Nov 2018 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Mon, 05 Oct 2020 00:00:00 +0000</lastBuildDate>
         <atom:link href="https://nazarii.bardiuk.com/feed.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Vim as HTTP client</title>
+            <link>https://nazarii.bardiuk.com/posts/vim-curl.html</link>
+            <pubDate>Mon, 05 Oct 2020 00:00:00 +0000</pubDate>
+            <author>nazarii@bardiuk.com (Nazarii Bardiuk)</author>
+            <guid>https://nazarii.bardiuk.com/posts/vim-curl.html</guid>
+            <description>&lt;p&gt;Let me share a quick tip on how to use Vim with curl as a simple HTTP client.&lt;/p&gt;
+&lt;video width=&#34;95%&#34; autoplay loop&gt;
+  &lt;source src=&#34;https://nazarii.bardiuk.com/videos/curl.webm&#34; type=&#34;video/webm&#34;/&gt;
+&lt;/video&gt;
+&lt;p&gt;In the core of this tip is a filter through curl.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-vim&#34; data-lang=&#34;vim&#34;&gt;:!curl --config -&lt;span style=&#34;&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Let us walk through this.&lt;/p&gt;
+&lt;h2 id=&#34;vim-filter&#34;&gt;Vim filter&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://vimhelp.org/change.txt.html#filter&#34;&gt;&lt;code&gt;:help filter&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A filter is a program that accepts text at standard input, changes it in some way, and sends it to standard output.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;We can send some buffer lines to an external command, and Vim will replace them with the command output.&lt;/p&gt;
+&lt;p&gt;Given a buffer&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;3
+2
+4
+1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After filtering lines through the sort command&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-vim&#34; data-lang=&#34;vim&#34;&gt;:%!sort&lt;span style=&#34;&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The lines are in order.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;1
+2
+3
+4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;curl-configuration-file&#34;&gt;curl configuration file&lt;/h2&gt;
+&lt;p&gt;Curl allows passing all command-line flags using a configuration file.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://curl.haxx.se/docs/manpage.html#-K&#34;&gt;&lt;code&gt;--config&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Specify a text file to read curl arguments from. The command line arguments found in the text file will be used as if they were provided on the command line.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Like many command-line apps, curl uses a hyphen (&lt;code&gt;-&lt;/code&gt;) to make the app read file from standard input.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;$ echo &lt;span style=&#34;font-style:italic&#34;&gt;&amp;#39;--url http://ifconfig.me --silent&amp;#39;&lt;/span&gt; | curl --config -
+1.2.3.4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Let&amp;rsquo;s use this in Vim buffer.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;--url http://ifconfig.me
+--silent
+--show-error
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;run the command&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-vim&#34; data-lang=&#34;vim&#34;&gt;:%!curl --config -&lt;span style=&#34;&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The buffer now contains a curl response.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;1.2.3.4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;interactive-approach&#34;&gt;Interactive approach&lt;/h2&gt;
+&lt;p&gt;It&amp;rsquo;s hard to iterate over request arguments because the curl command replaces them with the response.&lt;/p&gt;
+&lt;p&gt;To make it more interactive, we can duplicate the configuration lines before running the curl.&lt;/p&gt;
+&lt;p&gt;Below is a sequence of commands that can help with this&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;vip&lt;/code&gt; select all configuration lines using paragraph text object&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;y&lt;/code&gt; copy selected lines&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;P&lt;/code&gt; paste before the cursor&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gv&lt;/code&gt; reselect the lines&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:!curl --config -&lt;/code&gt; run curl on the selection&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Record this into a macro or create a command, and you have an interactive environment.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#fff;-moz-tab-size:2;-o-tab-size:2;tab-size:2&#34;&gt;&lt;code class=&#34;language-vimrc&#34; data-lang=&#34;vimrc&#34;&gt;:map &amp;lt;leader&amp;gt;cc vipyPgvO&amp;lt;Esc&amp;gt;O&amp;lt;Esc&amp;gt;gv:!curl --config -&amp;lt;CR&amp;gt;&lt;span style=&#34;&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The extra bit &lt;code&gt;gvO&amp;lt;Esc&amp;gt;O&amp;lt;Esc&amp;gt;&lt;/code&gt; inserts an empty line between request and response. It helps to make them different paragraphs, distinct text objects.&lt;/p&gt;
+&lt;h2 id=&#34;use-a-plugin&#34;&gt;Use a plugin&lt;/h2&gt;
+&lt;p&gt;This approach is excellent for a quick hack or an example of using the Vim filter command.&lt;/p&gt;
+&lt;p&gt;I don&amp;rsquo;t use it every day. Instead, I prefer to use a plugin like &lt;a href=&#34;https://github.com/diepm/vim-rest-console&#34;&gt;Vim REST Console&lt;/a&gt;.
+Compared to the simple curl command, it has several advantages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;has simple HTTP syntax&lt;/li&gt;
+&lt;li&gt;supports variables&lt;/li&gt;
+&lt;li&gt;does not require escaping POST payload&lt;/li&gt;
+&lt;li&gt;formats response payload&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        </item>
         
         <item>
             <title>What I&#39;ve learned during Advent of Code</title>
